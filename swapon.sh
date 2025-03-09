@@ -14,7 +14,11 @@ fi
 ZRAM_SIZE=$(dialog --inputbox "Введите размер zram (например, 8G, 1G и т.д.):" 8 40 3>&1 1>&2 2>&3 3>&-)
 
 # Запросить у пользователя, добавлять ли в автозапуск
-AUTOSTART=$(dialog --yesno "Хотите добавить zram в автозапуск?" 7 60; echo $?)
+if dialog --yesno "Хотите добавить zram в автозапуск?" 7 60; then
+    AUTOSTART=0
+else
+    AUTOSTART=1
+fi
 
 # Загрузка модуля zram
 sudo modprobe zram
@@ -46,23 +50,4 @@ if [ ! -f /etc/systemd/system/rc-local.service ]; then
     echo "" | sudo tee -a /etc/systemd/system/rc-local.service
     echo "[Service]" | sudo tee -a /etc/systemd/system/rc-local.service
     echo "Type=forking" | sudo tee -a /etc/systemd/system/rc-local.service
-    echo "ExecStart=/etc/rc.local start" | sudo tee -a /etc/systemd/system/rc-local.service
-    echo "TimeoutSec=0" | sudo tee -a /etc/systemd/system/rc-local.service
-    echo "StandardOutput=journal" | sudo tee -a /etc/systemd/system/rc-local.service
-    echo "RemainAfterExit=yes" | sudo tee -a /etc/systemd/system/rc-local.service
-    echo "" | sudo tee -a /etc/systemd/system/rc-local.service
-    echo "[Install]" | sudo tee -a /etc/systemd/system/rc-local.service
-    echo "WantedBy=multi-user.target" | sudo tee -a /etc/systemd/system/rc-local.service
-fi
-
-# Включение и запуск службы rc-local, если пользователь выбрал автозапуск
-if [[ $AUTOSTART -eq 0 ]]; then
-    sudo systemctl enable rc-local
-    sudo systemctl start rc-local
-    dialog --msgbox "ZRAM настроен с размером $ZRAM_SIZE и будет активирован при загрузке." 6 50
-else
-    dialog --msgbox "ZRAM настроен с размером $ZRAM_SIZE, но не будет добавлен в автозапуск." 6 50
-fi
-
-# Очистка
-clear
+    echo "ExecStart=/etc/rc.local start" | sudo tee -a /etc ⬤
