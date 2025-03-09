@@ -33,16 +33,35 @@ is_valid_zram_size() {
 }
 
 # Проверка существующих настроек
-if [ -f "$ZRAM_CONFIG" ]; then
-    source "$ZRAM_CONFIG"
-    dialog --msgbox "Текущие настройки ZRAM:\nРазмер: $ZRAM_SIZE\nАвтозапуск: $(if [ "$ADD_TO_AUTOSTART" -eq 1 ]; then echo "Включен"; else echo "Выключен"; fi)" 10 50
-    dialog --yesno "Хотите удалить изменения или продолжить выполнение скрипта?" 7 40
-    if [ $? -eq 0 ]; then
-        rm -f "$ZRAM_CONFIG"
-        dialog --msgbox "Настройки ZRAM удалены." 6 30
-    else
-        dialog --msgbox "Продолжаем выполнение скрипта." 6 30
+if [ $? -eq 0 ]; then
+    # Удаление конфигурационного файла
+    rm -f "$ZRAM_CONFIG"
+    dialog --msgbox "Настройки ZRAM удалены." 6 30
+
+    # Удаление ZRAM из текущего сеанса
+    if [ -e /dev/zram0 ]; then
+        $SUDO swapoff /dev/zram0  # Отключение ZRAM
+        $SUDO modprobe -r zram     # Удаление модуля ZRAM
+        dialog --msgbox "ZRAM удален из текущего сеанса." 6 30
     fi
+
+    # Удаление скрипта автозагрузки
+    if [ -f /etc/init.d/zram_setup ]; then
+        $SUDO rm -f /etc/init.d/zram_setup
+        $SUDO update-rc.d -f zram_setup remove
+    fi
+
+    # Удаление systemd сервиса, если он существует
+    if [ -f /etc/systemd/system/zram_setup.service ]; then
+        $SUDO systemctl stop zram_setup.service
+        $SUDO systemctl disable zram_setup.service
+        $SUDO rm -f /etc/systemd/system/zram_setup.service
+        $SUDO systemctl daemon-reload
+    fi
+
+    exit 0
+else
+    dialog --msgbox "Продолжаем выполнение скрипта." 6 30
 fi
 
 # Запрос размера zram
@@ -89,8 +108,8 @@ if [ $RUN_SCRIPT -eq 0 ]; then
     dialog --msgbox "zram настроен успешно!" 6 30
     exit 0  # Остановка выполнения скрипта после успешной настройки
 else
-    dialog --msgbox "Скрипт не был запущен." 6 30
-    exit 1  # Завершение скрипта с кодом ошибки
+    echo "Вы прервали выполнение скрипта."
+    exit 0
 fi
 
 # Удаление временного файла
