@@ -34,7 +34,7 @@ is_valid_zram_size() {
 
 # Функция для завершения скрипта
 close() {
-    echo "/n/n/n/n/n/n/n/n/n/n/n/n/n/n/n//n/n/n/n/n/n/n/n/n/n/n/nВы прервали выполнение скрипта."
+    echo "/n/n/n/n/n/n/n/n/n/n/n/n/n/n/n/n/n/n/n/n/n/n/n/n/n/n/nВы прервали выполнение скрипта. 1"
     exit 0
 }
 
@@ -76,8 +76,7 @@ fi
 while true; do
     dialog --inputbox "Введите размер zram (например, 8G, 512M):" 8 40 2> /tmp/zram_size
     if [ $? -ne 0 ]; then
-        echo "Вы прервали выполнение скрипта."
-        exit 0
+        close
     fi
 
     ZRAM_SIZE=$(< /tmp/zram_size)
