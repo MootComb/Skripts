@@ -41,7 +41,7 @@ if [ -f "$ZRAM_CONFIG" ]; then
     dialog --msgbox "Текущие настройки ZRAM:\nРазмер: $ZRAM_SIZE\nАвтозапуск: $(if [ "$ADD_TO_AUTOSTART" -eq 0 ]; then echo "Включен"; else echo "Выключен"; fi)" 10 50
     
     # Запрос на удаление настроек ZRAM
-    if dialog --yesno "Для продолжения удалить настройки zram?" 7 40; then
+    if dialog --yesno "Для продолжения, удалить настройки zram?" 7 40; then
         # Удаление конфигурационного файла
         rm -f "$ZRAM_CONFIG"
         echo "Настройки ZRAM удалены."
@@ -108,7 +108,7 @@ if [ $RUN_SCRIPT -eq 0 ]; then
 
     # Добавление в автозапуск, если выбрано
     if [ $ADD_TO_AUTOSTART -eq 0 ]; then
-        echo -e "ZRAM_SIZE=$ZRAM_SIZE\nADD_TO_AUTOSTART=0" | $SUDO tee $ZRAM_CONFIG > /dev/null
+        echo -e "ZRAM_SIZE=$ZRAM_SIZE\nADD_TO_AUTOSTART=$ADD_TO_AUTOSTART" | $SUDO tee $ZRAM_CONFIG > /dev/null
         
         # Создание systemd сервиса
         echo -e "[Unit]\nDescription=ZRAM Setup\n\n[Service]\nType=oneshot\nExecStart=/bin/bash -c 'modprobe zram && echo \$ZRAM_SIZE > /sys/block/zram0/disksize && mkswap /dev/zram0 && swapon /dev/zram0'\nRemainAfterExit=yes\n\n[Install]\nWantedBy=multi-user.target" | $SUDO tee /etc/systemd/system/zram_setup.service > /dev/null
