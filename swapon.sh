@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Обработка сигнала SIGINT (Ctrl+C)
-trap 'echo -e "\nВы прервали выполнение скрипта."; exit 0' SIGINT
+trap 'echo -e "Вы прервали выполнение скрипта."; exit 0' SIGINT
 
 # Проверка наличия sudo
 SUDO=$(command -v sudo || echo "")
@@ -38,7 +38,7 @@ if [ -f "$ZRAM_CONFIG" ]; then
     source "$ZRAM_CONFIG"
     
     # Отображение текущих настроек
-    dialog --msgbox "Текущие настройки ZRAM:\nРазмер: $ZRAM_SIZE\nАвтозапуск: $(if [ "$ADD_TO_AUTOSTART" -eq 1 ]; then echo "Включен"; else echo "Выключен"; fi)" 10 50
+    dialog --msgbox "Текущие настройки ZRAM:\nРазмер: $ZRAM_SIZE\nАвтозапуск: $(if [ $ADD_TO_AUTOSTART -eq 1 ]; then echo "Включен"; else echo "Выключен"; fi)" 10 50
     
     # Запрос на удаление настроек ZRAM
     if dialog --yesno "Хотите удалить настройки zram?" 7 40; then
@@ -59,10 +59,11 @@ if [ -f "$ZRAM_CONFIG" ]; then
             $SUDO systemctl disable zram_setup.service
             $SUDO rm -f /etc/systemd/system/zram_setup.service
             $SUDO systemctl daemon-reload
+            echo "ZRAM удален из автозапуска."
         fi
         exit 1
     else
-        dialog --msgbox "Продолжаем выполнение скрипта." 6 30
+      #  dialog --msgbox "Продолжаем выполнение скрипта." 6 30
     fi
 fi
 
@@ -88,7 +89,7 @@ dialog --yesno "Добавить zram в автозапуск?" 7 40
 ADD_TO_AUTOSTART=$?
 
 # Подтверждение запуска
-dialog --yesno "Вы выбрали:\nРазмер zram: $ZRAM_SIZE\nДобавить в автозапуск: $(if [ $ADD_TO_AUTOSTART -eq 0 ]; then echo "Да"; else echo "Нет"; fi)\n\nЗапустить скрипт?" 10 50
+dialog --yesno "Вы выбрали:\nРазмер zram: $ZRAM_SIZE\nДобавить в автозапуск: $(if [ $ADD_TO_AUTOSTART -eq 0 ]; then echo "Включен"; else echo "Выключен"; fi)\n\nЗапустить скрипт?" 10 50
 RUN_SCRIPT=$?
 
 # Если пользователь согласен запустить скрипт
@@ -116,10 +117,10 @@ if [ $RUN_SCRIPT -eq 0 ]; then
         $SUDO systemctl enable zram_setup.service
     fi
     
-    dialog --msgbox "ZRAM успешно настроен!" 6 30
+    echo "ZRAM успешно настроен."
     exit 0  # Остановка выполнения скрипта после успешной настройки
 else
-    dialog --msgbox "Вы прервали выполнение скрипта." 6 30
+    echo "Вы прервали выполнение скрипта."
     exit 0
 fi
 
