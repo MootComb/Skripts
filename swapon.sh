@@ -63,7 +63,8 @@ if [ -f "$ZRAM_CONFIG" ]; then
         fi
         dialog --msgbox "Продолжаем выполнение скрипта." 6 30
     else
-        exit 1
+        echo "Вы прервали выполнение скрипта."
+        exit 0
     fi
 fi
 
