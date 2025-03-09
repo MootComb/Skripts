@@ -8,6 +8,8 @@ install_dialog() {
         $SUDO yum install -y dialog
     elif command -v dnf &> /dev/null; then
         $SUDO dnf install -y dialog
+    elif command -v pacman &> /dev/null; then
+        $SUDO pacman -Sy --noconfirm dialog
     else
         echo "Не удалось установить dialog. Пожалуйста, установите его вручную."
         exit 1
