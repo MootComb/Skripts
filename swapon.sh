@@ -1,81 +1,83 @@
 #!/bin/bash
 
-# Функция для автоматической установки пакетов
-auto_install() {
-    PACKAGE=$1
-    if ! command -v $PACKAGE &> /dev/null; then
-        echo "Утилита $PACKAGE не найдена. Устанавливаю..."
-        sudo apt update && sudo apt install -y $PACKAGE
-        if [ $? -ne 0 ]; then
-            echo "Не удалось установить $PACKAGE. Пожалуйста, установите его вручную."
+# Функция для выполнения команд с или без sudo
+run_command() {
+    if command -v sudo &> /dev/null; then
+        sudo "$@"
+    else
+        if [[ $EUID -eq 0 ]]; then
+            "$@"
+        else
+            echo "Этот скрипт требует прав root. Пожалуйста, запустите его от имени root или установите sudo."
             exit 1
         fi
     fi
 }
 
-# Автоматическая установка необходимых утилит
-auto_install dialog
-auto_install util-linux  # Для modprobe, mkswap, swapon
-
 # Запросить у пользователя размер zram
-ZRAM_SIZE=$(dialog --inputbox "Введите размер zram (например, 8G, 1G и т.д.):" 8 40 3>&1 1>&2 2>&3 3>&-)
-
-# Запросить у пользователя, добавлять ли в автозапуск
-if dialog --yesno "Хотите добавить zram в автозапуск?" 7 60; then
-    AUTOSTART=0
-else
-    AUTOSTART=1
-fi
-
-# Подтверждение выбранных параметров
-CONFIRM=$(dialog --yesno "Вы выбрали:\nРазмер zram: $ZRAM_SIZE\nДобавить в автозапуск: $(if [ $AUTOSTART -eq 0 ]; then echo 'Да'; else echo 'Нет'; fi)\n\nВы хотите продолжить?" 10 60; echo $?)
-
-if [ $? -ne 0 ]; then
-    dialog --msgbox "Изменения отменены." 6 30
-    exit 0
-fi
+read -p "Введите размер zram (например, 8G, 1G и т.д.): " ZRAM_SIZE
 
 # Загрузка модуля zram
-sudo modprobe zram
+run_command modprobe zram
 
 # Установка размера zram
-echo $ZRAM_SIZE | sudo tee /sys/block/zram0/disksize
+echo $ZRAM_SIZE | run_command tee /sys/block/zram0/disksize
 
 # Создание области подкачки
-sudo mkswap /dev/zram0
+run_command mkswap /dev/zram0
 
 # Активация подкачки
-sudo swapon /dev/zram0
+run_command swapon /dev/zram0
 
-# Создание файла /etc/zram, если он не существует
-if [ ! -f /etc/zram ]; then
-    echo "#!/bin/bash" | sudo tee /etc/zram
-    echo "modprobe zram" | sudo tee -a /etc/zram
-    echo "echo $ZRAM_SIZE > /sys/block/zram0/disksize" | sudo tee -a /etc/zram
-    echo "mkswap /dev/zram0" | sudo tee -a /etc/zram
-    echo "swapon /dev/zram0" | sudo tee -a /etc/zram
-    sudo chmod +x /etc/zram
+# Запросить у пользователя, хочет ли он добавить скрипт в автозапуск
+read -p "Хотите добавить этот скрипт в автозапуск? (y/n): " ADD_TO_STARTUP
+
+if [[ "$ADD_TO_STARTUP" == "y" ]]; then
+    # Создание файла .desktop для автозапуска
+    DESKTOP_FILE="$HOME/.config/autostart/setup_zram.desktop"
+    
+    mkdir -p "$HOME/.config/autostart"
+    
+    echo "[Desktop Entry]" > "$DESKTOP_FILE"
+    echo "Type=Application" >> "$DESKTOP_FILE"
+    echo "Exec=$HOME/setup_zram.sh" >> "$DESKTOP_FILE"
+    echo "Hidden=false" >> "$DESKTOP_FILE"
+    echo "NoDisplay=false" >> "$DESKTOP_FILE"
+    echo "X-GNOME-Autostart-enabled=true" >> "$DESKTOP_FILE"
+    echo "Name=Setup ZRAM" >> "$DESKTOP_FILE"
+    
+    echo "Скрипт добавлен в автозапуск."
 fi
 
-# Создание службы systemd для zram
-if [ ! -f /etc/systemd/system/zram.service ]; then
-    echo "[Unit]" | sudo tee /etc/systemd/system/zram.service
-    echo "Description=ZRAM Setup" | sudo tee -a /etc/systemd/system/zram.service
-    echo "After=local-fs.target" | sudo tee -a /etc/systemd/system/zram.service
-    echo "" | sudo tee -a /etc/systemd/system/zram.service
-    echo "[Service]" | sudo tee -a /etc/systemd/system/zram.service
-    echo "Type=forking" | sudo tee -a /etc/systemd/system/zram.service
-    echo "ExecStart=/etc/zram" | sudo tee -a /etc/systemd/system/zram.service
-    echo "TimeoutSec=0" | sudo tee -a /etc/systemd/system/zram.service
-    echo "StandardOutput=journal" | sudo tee -a /etc/systemd/system/zram.service
-    echo "RemainAfterExit=yes" | sudo tee -a /etc/systemd/system/zram.service
-    echo "" | sudo tee -a /etc/systemd/system/zram.service
-    echo "[Install]" | sudo tee -a /etc/systemd/system/zram.service
-    echo "WantedBy=multi-user.target" | sudo tee -a /etc/systemd/system/zram.service
+# Создание файла /etc/rc.local, если он не существует
+if [ ! -f /etc/rc.local ]; then
+    echo "#!/bin/bash" | run_command tee /etc/rc.local
+    echo "modprobe zram" | run_command tee -a /etc/rc.local
+    echo "echo $ZRAM_SIZE > /sys/block/zram0/disksize" | run_command tee -a /etc/rc.local
+    echo "mkswap /dev/zram0" | run_command tee -a /etc/rc.local
+    echo "swapon /dev/zram0" | run_command tee -a /etc/rc.local
+    run_command chmod +x /etc/rc.local
 fi
 
-# Включение и запуск службы zram, если пользователь выбрал автозапуск
-if [[ $AUTOSTART -eq 0 ]]; then
-    sudo systemctl enable zram.service
-    sudo systemctl start zram.service
-    dialog --msgbox "ZRAM успешно настроен и добавлен в автозапуск." 6 40
+# Создание службы systemd для rc.local
+if [ ! -f /etc/systemd/system/rc-local.service ]; then
+    echo "[Unit]" | run_command tee /etc/systemd/system/rc-local.service
+    echo "Description=/etc/rc.local Compatibility" | run_command tee -a /etc/systemd/system/rc-local.service
+    echo "ConditionPathExists=/etc/rc.local" | run_command tee -a /etc/systemd/system/rc-local.service
+    echo "" | run_command tee -a /etc/systemd/system/rc-local.service
+    echo "[Service]" | run_command tee -a /etc/systemd/system/rc-local.service
+    echo "Type=forking" | run_command tee -a /etc/systemd/system/rc-local.service
+    echo "ExecStart=/etc/rc.local start" | run_command tee -a /etc/systemd/system/rc-local.service
+    echo "TimeoutSec=0" | run_command tee -a /etc/systemd/system/rc-local.service
+    echo "StandardOutput=journal" | run_command tee -a /etc/systemd/system/rc-local.service
+    echo "RemainAfterExit=yes" | run_command tee -a /etc/systemd/system/rc-local.service
+    echo "" | run_command tee -a /etc/systemd/system/rc-local.service
+    echo "[Install]" | run_command tee -a /etc/systemd/system/rc-local.service
+    echo "WantedBy=multi-user.target" | run_command tee -a /etc/systemd/system/rc-local.service
+fi
+
+# Включение и запуск службы rc-local
+run_command systemctl enable rc-local
+run_command systemctl start rc-local
+
+echo "ZRAM настроен с размером $ZRAM_SIZE и будет активирован при загрузке."
