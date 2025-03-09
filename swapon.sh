@@ -110,13 +110,7 @@ if [ $RUN_SCRIPT -eq 0 ]; then
         echo -e "ZRAM_SIZE=$ZRAM_SIZE\nADD_TO_AUTOSTART=0" | $SUDO tee $ZRAM_CONFIG > /dev/null
         
         # Создание systemd сервиса
-        echo -e "[Unit]\nDescription=ZRAM Setup\n\n[Service]\nType=oneshot\nExecStart=/usr/local/bin/zram_setup.sh\nRemainAfterExit=yes\n\n[Install]\nWantedBy=multi-user.target" | $SUDO tee /etc/systemd/system/zram_setup.service > /dev/null
-        
-        # Создание скрипта для настройки ZRAM
-        echo -e "#!/bin/bash\n$SUDO modprobe zram\n$SUDO sh -c 'echo \$ZRAM_SIZE > /sys/block/zram0/disksize'\n$SUDO mkswap /dev/zram0\n$SUDO swapon /dev/zram0" | $SUDO tee /usr/local/bin/zram_setup.sh > /dev/null
-        
-        # Установка прав на выполнение
-        $SUDO chmod +x /usr/local/bin/zram_setup.sh
+        echo -e "[Unit]\nDescription=ZRAM Setup\n\n[Service]\nType=oneshot\nExecStart=/bin/bash -c 'modprobe zram && echo \$ZRAM_SIZE > /sys/block/zram0/disksize && mkswap /dev/zram0 && swapon /dev/zram0'\nRemainAfterExit=yes\n\n[Install]\nWantedBy=multi-user.target" | $SUDO tee /etc/systemd/system/zram_setup.service > /dev/null
         
         # Включение сервиса
         $SUDO systemctl enable zram_setup.service
