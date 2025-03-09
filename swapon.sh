@@ -37,6 +37,11 @@ is_valid_zram_size() {
 # Запрос размера zram
 while true; do
     dialog --inputbox "Введите размер zram (например, 8G, 512M):" 8 40 2> /tmp/zram_size
+    if [ $? -ne 0 ]; then
+        dialog --msgbox "Вы отменили ввод. Скрипт завершен." 6 40
+        exit 0
+    fi
+
     ZRAM_SIZE=$(< /tmp/zram_size)
 
     if is_valid_zram_size "$ZRAM_SIZE"; then
@@ -49,6 +54,11 @@ done
 # Запрос добавления в автозапуск
 dialog --yesno "Добавить zram в автозапуск?" 7 40
 ADD_TO_AUTOSTART=$?
+
+# Обработка нажатия "Отмена"
+if [ $ADD_TO_AUTOSTART -eq 1 ]; then
+    dialog --msgbox "Вы отменили выбор добавления в автозапуск." 6 40
+fi
 
 # Подтверждение запуска
 dialog --yesno "Вы выбрали:\nРазмер zram: $ZRAM_SIZE\nДобавить в автозапуск: $(if [ $ADD_TO_AUTOSTART -eq 0 ]; then echo "Да"; else echo "Нет"; fi)\n\nЗапустить скрипт?" 10 50
