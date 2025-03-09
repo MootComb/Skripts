@@ -1,9 +1,13 @@
 #!/bin/bash
 
-# Убедитесь, что dialog установлен
+# Проверка наличия dialog и установка, если он не установлен
 if ! command -v dialog &> /dev/null; then
-    echo "Установите dialog с помощью: sudo apt install dialog"
-    exit 1
+    echo "Пакет dialog не установлен. Устанавливаю его..."
+    sudo apt update && sudo apt install -y dialog
+    if [ $? -ne 0 ]; then
+        echo "Ошибка при установке dialog. Пожалуйста, установите его вручную."
+        exit 1
+    fi
 fi
 
 # Запросить у пользователя размер zram
