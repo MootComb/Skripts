@@ -1,5 +1,12 @@
 #!/bin/bash
 
+# Проверка наличия sudo
+if command -v sudo &> /dev/null; then
+    SUDO="sudo"
+else
+    SUDO=""
+fi
+
 # Функция для установки dialog
 install_dialog() {
     if command -v apt &> /dev/null; then
@@ -19,25 +26,25 @@ install_dialog() {
 # Проверка, установлен ли dialog
 if ! command -v dialog &> /dev/null; then
     echo "dialog не установлен. Устанавливаю..."
-    # Проверка наличия sudo
-    if command -v sudo &> /dev/null; then
-        SUDO="sudo"
-    else
-        SUDO=""
-    fi
     install_dialog
 fi
 
-# Проверка наличия sudo
-if command -v sudo &> /dev/null; then
-    SUDO="sudo"
-else
-    SUDO=""
-fi
+# Функция для проверки корректности ввода размера zram
+is_valid_zram_size() {
+    [[ $1 =~ ^[0-9]+[GgMm]$ ]] || [[ $1 =~ ^[0-9]+[GgMm][Bb]$ ]]
+}
 
 # Запрос размера zram
-dialog --inputbox "Введите размер zram (например, 8G):" 8 40 2> /tmp/zram_size
-ZRAM_SIZE=$(< /tmp/zram_size)
+while true; do
+    dialog --inputbox "Введите размер zram (например, 8G, 512M):" 8 40 2> /tmp/zram_size
+    ZRAM_SIZE=$(< /tmp/zram_size)
+
+    if is_valid_zram_size "$ZRAM_SIZE"; then
+        break
+    else
+        dialog --msgbox "Некорректный ввод. Пожалуйста, введите размер в формате, например, 8G или 512M." 6 50
+    fi
+done
 
 # Запрос добавления в автозапуск
 dialog --yesno "Добавить zram в автозапуск?" 7 40
