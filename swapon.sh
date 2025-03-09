@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Обработка сигнала SIGINT (Ctrl+C)
-trap 'echo -e "\nСкрипт прерван пользователем."; exit 0' SIGINT
+trap 'echo -e "\nВы прервали выполнение скрипта."; exit 0' SIGINT
 
 # Проверка наличия sudo
 SUDO=$(command -v sudo || echo "")
@@ -86,7 +86,6 @@ if [ $RUN_SCRIPT -eq 0 ]; then
         $SUDO chmod +x /etc/init.d/zram_setup
         $SUDO update-rc.d zram_setup defaults
     fi
-
     dialog --msgbox "zram настроен успешно!" 6 30
     exit 0  # Остановка выполнения скрипта после успешной настройки
 else
