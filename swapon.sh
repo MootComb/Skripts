@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Обработка сигнала SIGINT (Ctrl+C)
+trap 'echo -e "\nСкрипт прерван пользователем."; exit 0' SIGINT
+
 # Проверка наличия sudo
 if command -v sudo &> /dev/null; then
     SUDO="sudo"
