@@ -44,13 +44,13 @@ if [ -f "$ZRAM_CONFIG" ]; then
     if dialog --yesno "Хотите удалить настройки zram?" 7 40; then
         # Удаление конфигурационного файла
         rm -f "$ZRAM_CONFIG"
-        dialog --msgbox "Настройки ZRAM удалены." 6 30
+        echo "Настройки ZRAM удалены."
 
         # Удаление ZRAM из текущего сеанса, если он существует
         if [ -e /dev/zram0 ]; then
             $SUDO swapoff /dev/zram0  # Отключение ZRAM
             $SUDO modprobe -r zram     # Удаление модуля ZRAM
-            dialog --msgbox "ZRAM удален из текущего сеанса." 6 30
+            echo "ZRAM удален из текущего сеанса."
         fi
 
         # Удаление скрипта автозагрузки, если он существует
@@ -66,6 +66,7 @@ if [ -f "$ZRAM_CONFIG" ]; then
             $SUDO rm -f /etc/systemd/system/zram_setup.service
             $SUDO systemctl daemon-reload
         fi
+        exit 1
     else
         dialog --msgbox "Продолжаем выполнение скрипта." 6 30
     fi
