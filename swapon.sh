@@ -64,6 +64,8 @@ if [ -f "$ZRAM_CONFIG" ]; then
     else
         dialog --msgbox "Продолжаем выполнение скрипта." 6 30
     fi
+else
+    dialog --msgbox "Автозапуск ZRAM выключен." 6 30
 fi
 
 # Запрос размера zram
