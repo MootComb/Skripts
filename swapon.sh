@@ -49,7 +49,7 @@ fi
 while true; do
     dialog --inputbox "Введите размер zram (например, 8G, 512M):" 8 40 2> /tmp/zram_size
     if [ $? -ne 0 ]; then
-        dialog --msgbox "Вы отменили ввод. Скрипт завершен." 6 40
+        echo "Вы прервали выполнение скрипта."
         exit 0
     fi
 
@@ -82,6 +82,7 @@ if [ $RUN_SCRIPT -eq 0 ]; then
     if [ $ADD_TO_AUTOSTART -eq 0 ]; then
         echo -e "ZRAM_SIZE=$ZRAM_SIZE\nADD_TO_AUTOSTART=0" | $SUDO tee $ZRAM_CONFIG > /dev/null
         echo -e "#!/bin/bash\n$SUDO modprobe zram\n$SUDO sh -c 'echo \$ZRAM_SIZE > /sys/block/zram/disksize'\n$SUDO mkswap /dev/zram0\n$SUDO swapon /dev/zram0" | $SUDO tee /etc/init.d/zram_setup > /dev/null
+        $SUDO chmod +x /etc/init.d/zram
         $SUDO chmod +x /etc/init.d/zram_setup
         $SUDO update-rc.d zram_setup defaults
     fi
