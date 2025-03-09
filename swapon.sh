@@ -32,6 +32,12 @@ is_valid_zram_size() {
     [[ $1 =~ ^[0-9]+[GgMm]$ ]] || [[ $1 =~ ^[0-9]+[GgMm][Bb]$ ]]
 }
 
+# Функция для завершения скрипта
+close() {
+    echo "/n/n/n/n/n/n/n/n/n/n/n/n/n/n/n//n/n/n/n/n/n/n/n/n/n/n/nВы прервали выполнение скрипта."
+    exit 0
+}
+
 # Проверка существующих настроек ZRAM
 if [ -f "$ZRAM_CONFIG" ]; then
     # Загрузка текущих настроек
@@ -62,8 +68,7 @@ if [ -f "$ZRAM_CONFIG" ]; then
             echo "ZRAM удален из автозапуска."
         fi
     else
-        echo "Вы прервали выполнение скрипта."
-        exit 0
+        close
     fi
 fi
 
