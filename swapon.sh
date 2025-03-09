@@ -69,8 +69,54 @@ fi
 # Запрос размера zram
 while true; do
     dialog --inputbox "Введите размер zram (например, 8G, 512M):" 8 40 2> /tmp/zram_size
+    if [ $? -ne 0 ]; then
+        echo "Вы прервали выполнение скрипта."
+        exit 0
+    fi
+
+    ZRAM_SIZE=$(< /tmp/zram_size)
+
+    if is_valid_zram_size "$ZRAM_SIZE"; then
+        break
+    else
+        dialog --msgbox "Некорректный ввод. Пожалуйста, введите размер в формате, например, 8G или 512M." 6 50
+    fi
+done
+
+# Запрос добавления в автозапуск
+dialog --yesno "Добавить zram в автозапуск?" 7 40
+ADD_TO_AUTOSTART=$?
+
+# Подтверждение запуска
+dialog --yesno "Вы выбрали:\nРазмер zram: $ZRAM_SIZE\nДобавить в автозапуск: $(if [ $ADD_TO_AUTOSTART -eq 0 ]; then echo "Да"; else echo "Нет"; fi)\n\nЗапустить скрипт?" 10 50
+RUN_SCRIPT=$?
+
+# Если пользователь согласен запустить скрипт
+if [ $RUN_SCRIPT -eq 0 ]; then
+    echo "Настройка zram..."
+    
+    # Загрузка модуля zram
+    $SUDO modprobe zram
+
+    # Установка размера zram
+    echo $ZRAM_SIZE | $SUDO tee /sys/block/zram0/disksize > /dev/null
+
+    # Создание swap на zram
+    $SUDO mkswap /dev/zram0
+    $SUDO swapon /dev/zram0
+
+    # Добавление в автозапуск, если выбрано
+    if [ $ADD_TO_AUTOSTART -eq 0 ]; then
+        echo -e "ZRAM_SIZE=$ZRAM_SIZE\nADD_TO_AUTOSTART=0" | $SUDO tee $ZRAM_CONFIG > /dev/null
+        
         # Создание systemd сервиса
-        echo -e "[Unit]\nDescription=ZRAM Setup\n\n[Service]\nType=oneshot\nExecStart=/bin/bash -c 'modprobe zram && echo \$ZRAM_SIZE > /sys/block/zram0/disksize && mkswap /dev/zram0 && swapon /dev/zram0'\nRemainAfterExit=yes\n\n[Install]\nWantedBy=multi-user.target" | $SUDO tee /etc/systemd/system/zram_setup.service > /dev/null
+        echo -e "[Unit]\nDescription=ZRAM Setup\n\n[Service]\nType=oneshot\nExecStart=/usr/local/bin/zram_setup.sh\nRemainAfterExit=yes\n\n[Install]\nWantedBy=multi-user.target" | $SUDO tee /etc/systemd/system/zram_setup.service > /dev/null
+        
+        # Создание скрипта для настройки ZRAM
+        echo -e "#!/bin/bash\n$SUDO modprobe zram\n$SUDO sh -c 'echo \$ZRAM_SIZE > /sys/block/zram0/disksize'\n$SUDO mkswap /dev/zram0\n$SUDO swapon /dev/zram0" | $SUDO tee /usr/local/bin/zram_setup.sh > /dev/null
+        
+        # Установка прав на выполнение
+        $SUDO chmod +x /usr/local/bin/zram_setup.sh
         
         # Включение сервиса
         $SUDO systemctl enable zram_setup.service
