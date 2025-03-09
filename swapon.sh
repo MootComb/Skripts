@@ -46,7 +46,6 @@ if [ -f "$ZRAM_CONFIG" ]; then
     dialog --msgbox "Текущие настройки ZRAM:\nРазмер: $ZRAM_SIZE\nАвтозапуск: $(if [ "$ADD_TO_AUTOSTART" -eq 1 ]; then echo "Включен"; else echo "Выключен"; fi)" 10 50
     dialog --yesno "Хотите удалить изменения или продолжить выполнение скрипта?" 7 40
     if [ $? -eq 0 ]; then
-        # Удаление настроек
         rm -f "$ZRAM_CONFIG"
         dialog --msgbox "Настройки ZRAM удалены." 6 30
     else
@@ -75,11 +74,6 @@ done
 dialog --yesno "Добавить zram в автозапуск?" 7 40
 ADD_TO_AUTOSTART=$?
 
-# Обработка нажатия "Отмена"
-if [ $ADD_TO_AUTOSTART -eq 1 ]; then
-    dialog --msgbox "Вы отменили выбор добавления в автозапуск." 6 40
-fi
-
 # Подтверждение запуска
 dialog --yesno "Вы выбрали:\nРазмер zram: $ZRAM_SIZE\nДобавить в автозапуск: $(if [ $ADD_TO_AUTOSTART -eq 0 ]; then echo "Да"; else echo "Нет"; fi)\n\nЗапустить скрипт?" 10 50
 RUN_SCRIPT=$?
@@ -92,4 +86,7 @@ if [ $RUN_SCRIPT -eq 0 ]; then
     $SUDO mkswap /dev/zram0
     $SUDO swapon /dev/zram0
 
-    # Добав
+    # Добавление в автозапуск, если выбрано
+    if [ $ADD_TO_AUTOSTART -eq 0 ]; then
+        echo -e "ZRAM_SIZE=$ZRAM_SIZE\nADD_TO_AUTOSTART=0" | $SUDO tee $ZRAM_CONFIG > /dev/null
+        echo -e "#!/bin/bash\n$SUDO modprobe zram\n$SUDO sh -c 'echo \$ZRAM_SIZE > /sys/block/zram/disksize'\n$SUDO mkswap /dev
