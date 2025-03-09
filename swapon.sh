@@ -4,11 +4,7 @@
 trap 'echo -e "\nСкрипт прерван пользователем."; exit 0' SIGINT
 
 # Проверка наличия sudo
-if command -v sudo &> /dev/null; then
-    SUDO="sudo"
-else
-    SUDO=""
-fi
+SUDO=$(command -v sudo || echo "")
 
 # Файл для хранения настроек ZRAM
 ZRAM_CONFIG="/etc/zram_config.conf"
@@ -35,6 +31,22 @@ fi
 is_valid_zram_size() {
     [[ $1 =~ ^[0-9]+[GgMm]$ ]] || [[ $1 =~ ^[0-9]+[GgMm][Bb]$ ]]
 }
+
+# Функция для вывода сообщений в режиме verbose
+verbose() {
+    if [ "$VERBOSE" = true ]; then
+        echo "$1"
+    fi
+}
+
+# Запрос режима verbose
+read -p "Включить режим verbose? (y/n): " -n 1 -r
+echo
+if [[ $REPLY =~ ^[Yy]$ ]]; then
+    VERBOSE=true
+else
+    VERBOSE=false
+fi
 
 # Проверка существующих настроек
 if [ -f "$ZRAM_CONFIG" ]; then
@@ -76,19 +88,19 @@ RUN_SCRIPT=$?
 
 # Если пользователь согласен запустить скрипт
 if [ $RUN_SCRIPT -eq 0 ]; then
-    # Настройка zram
+    verbose "Настройка zram..."
     $SUDO modprobe zram
     echo $ZRAM_SIZE | $SUDO tee /sys/block/zram/disksize > /dev/null
     $SUDO mkswap /dev/zram0
     $SUDO swapon /dev/zram0
 
     # Добавление в автозапуск, если выбрано
-    if [ $ADD_TO_AUTOSTART -eq 0 ]; then
-        echo -e "ZRAM_SIZE=$ZRAM_SIZE\nADD_TO_AUTOSTART=0" | $SUDO tee $ZRAM_CONFIG > /dev/null
-        echo -e "#!/bin/bash\n$SUDO modprobe zram\n$SUDO sh -c 'echo \$ZRAM_SIZE > /sys/block/zram/disksize'\n$SUDO mkswap /dev/zram0\n$SUDO swapon /dev/zram0" | $SUDO tee /etc/init.d/zram_setup > /dev/null
-        $SUDO chmod +x /etc/init.d/zram_setup
-        $SUDO update-rc.d zram_setup defaults
-    fi
+if [ $ADD_TO_AUTOSTART -eq 0 ]; then
+    echo -e "ZRAM_SIZE=$ZRAM_SIZE\nADD_TO_AUTOSTART=0" | $SUDO tee $ZRAM_CONFIG > /dev/null
+    echo -e "#!/bin/bash\n$SUDO modprobe zram\n$SUDO sh -c 'echo \$ZRAM_SIZE > /sys/block/zram/disksize'\n$SUDO mkswap /dev/zram0\n$SUDO swapon /dev/zram0" | $SUDO tee /etc/init.d/zram_setup > /dev/null
+    $SUDO chmod +x /etc/init.d/zram_setup
+    $SUDO update-rc.d zram_setup defaults
+fi
 
     dialog --msgbox "zram настроен успешно!" 6 30
 else
