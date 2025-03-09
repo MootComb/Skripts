@@ -1,9 +1,36 @@
 #!/bin/bash
 
+# Функция для установки dialog
+install_dialog() {
+    if command -v apt &> /dev/null; then
+        $SUDO apt update && $SUDO apt install -y dialog
+    elif command -v yum &> /dev/null; then
+        $SUDO yum install -y dialog
+    elif command -v dnf &> /dev/null; then
+        $SUDO dnf install -y dialog
+    else
+        echo "Не удалось установить dialog. Пожалуйста, установите его вручную."
+        exit 1
+    fi
+}
+
 # Проверка, установлен ли dialog
 if ! command -v dialog &> /dev/null; then
-    echo "Пожалуйста, установите dialog для работы этого скрипта."
-    exit 1
+    echo "dialog не установлен. Устанавливаю..."
+    # Проверка наличия sudo
+    if command -v sudo &> /dev/null; then
+        SUDO="sudo"
+    else
+        SUDO=""
+    fi
+    install_dialog
+fi
+
+# Проверка наличия sudo
+if command -v sudo &> /dev/null; then
+    SUDO="sudo"
+else
+    SUDO=""
 fi
 
 # Запрос размера zram
@@ -21,16 +48,16 @@ RUN_SCRIPT=$?
 # Если пользователь согласен запустить скрипт
 if [ $RUN_SCRIPT -eq 0 ]; then
     # Настройка zram
-    sudo modprobe zram
-    echo $ZRAM_SIZE > /sys/block/zram/disksize
-    sudo mkswap /dev/zram0
-    sudo swapon /dev/zram0
+    $SUDO modprobe zram
+    echo $ZRAM_SIZE | $SUDO tee /sys/block/zram/disksize > /dev/null
+    $SUDO mkswap /dev/zram0
+    $SUDO swapon /dev/zram0
 
     # Добавление в автозапуск, если выбрано
     if [ $ADD_TO_AUTOSTART -eq 0 ]; then
-        echo -e "#!/bin/bash\nsudo modprobe zram\nsudo sh -c 'echo $ZRAM_SIZE > /sys/block/zram/disksize'\nsudo mkswap /dev/zram0\nsudo swapon /dev/zram0" | sudo tee /etc/init.d/zram_setup
-        sudo chmod +x /etc/init.d/zram_setup
-        sudo update-rc.d zram_setup defaults
+        echo -e "#!/bin/bash\n$SUDO modprobe zram\n$SUDO sh -c 'echo $ZRAM_SIZE > /sys/block/zram/disksize'\n$SUDO mkswap /dev/zram0\n$SUDO swapon /dev/zram0" | $SUDO tee /etc/init.d/zram_setup > /dev/null
+        $SUDO chmod +x /etc/init.d/zram_setup
+        $SUDO update-rc.d zram_setup defaults
     fi
 
     dialog --msgbox "zram настроен успешно!" 6 30
