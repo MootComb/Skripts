@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Обработка комбинации клавиш (Ctrl+C)
-trap 'echo -e "\nВы прервали выполнение скрипта."; exit 0' SIGINT
+trap 'echo -e "Вы прервали выполнение скрипта."; exit 0' SIGINT
 
 # Проверка наличия sudo
 SUDO=$(command -v sudo || echo "")
