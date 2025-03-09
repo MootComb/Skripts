@@ -16,13 +16,9 @@ ZRAM_CONFIG="/etc/zram_config.conf"
 # Функция для установки dialog
 install_dialog() {
     if command -v apt &> /dev/null; then
-        $SUDO apt update && $SUDO apt install -y dialog
-    elif command -v yum &> /dev/null; then
-        $SUDO yum install -y dialog
-    elif command -v dnf &> /dev/null; then
-        $SUDO dnf install -y dialog
+        $SUDO apt update && $SUDO apt install -y dialog || { echo "Ошибка установки dialog."; exit 1; }
     elif command -v pacman &> /dev/null; then
-        $SUDO pacman -Sy --noconfirm dialog
+        $SUDO pacman -Sy --noconfirm dialog || { echo "Ошибка установки dialog."; exit 1; }
     else
         echo "Не удалось установить dialog. Пожалуйста, установите его вручную."
         exit 1
@@ -88,7 +84,6 @@ if [ $RUN_SCRIPT -eq 0 ]; then
 
     # Добавление в автозапуск, если выбрано
     if [ $ADD_TO_AUTOSTART -eq 0 ]; then
-        echo -e "ZRAM_SIZE=$ZRAM_SIZE\nADD_TO_AUTOSTART=0" | $SUDO tee $ZRAM_CONFIG > /dev
         echo -e "ZRAM_SIZE=$ZRAM_SIZE\nADD_TO_AUTOSTART=0" | $SUDO tee $ZRAM_CONFIG > /dev/null
         echo -e "#!/bin/bash\n$SUDO modprobe zram\n$SUDO sh -c 'echo \$ZRAM_SIZE > /sys/block/zram/disksize'\n$SUDO mkswap /dev/zram0\n$SUDO swapon /dev/zram0" | $SUDO tee /etc/init.d/zram_setup > /dev/null
         $SUDO chmod +x /etc/init.d/zram_setup
