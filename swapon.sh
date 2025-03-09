@@ -61,7 +61,6 @@ if [ -f "$ZRAM_CONFIG" ]; then
             $SUDO systemctl daemon-reload
             echo "ZRAM удален из автозапуска."
         fi
-        dialog --msgbox "Продолжаем выполнение скрипта." 6 30
     else
         echo "Вы прервали выполнение скрипта."
         exit 0
