@@ -10,6 +10,9 @@ else
     SUDO=""
 fi
 
+# Файл для хранения настроек ZRAM
+ZRAM_CONFIG="/etc/zram_config.conf"
+
 # Функция для установки dialog
 install_dialog() {
     if command -v apt &> /dev/null; then
@@ -36,6 +39,20 @@ fi
 is_valid_zram_size() {
     [[ $1 =~ ^[0-9]+[GgMm]$ ]] || [[ $1 =~ ^[0-9]+[GgMm][Bb]$ ]]
 }
+
+# Проверка существующих настроек
+if [ -f "$ZRAM_CONFIG" ]; then
+    source "$ZRAM_CONFIG"
+    dialog --msgbox "Текущие настройки ZRAM:\nРазмер: $ZRAM_SIZE\nАвтозапуск: $(if [ "$ADD_TO_AUTOSTART" -eq 1 ]; then echo "Включен"; else echo "Выключен"; fi)" 10 50
+    dialog --yesno "Хотите удалить изменения или продолжить выполнение скрипта?" 7 40
+    if [ $? -eq 0 ]; then
+        # Удаление настроек
+        rm -f "$ZRAM_CONFIG"
+        dialog --msgbox "Настройки ZRAM удалены." 6 30
+    else
+        dialog --msgbox "Продолжаем выполнение скрипта." 6 30
+    fi
+fi
 
 # Запрос размера zram
 while true; do
@@ -75,17 +92,4 @@ if [ $RUN_SCRIPT -eq 0 ]; then
     $SUDO mkswap /dev/zram0
     $SUDO swapon /dev/zram0
 
-    # Добавление в автозапуск, если выбрано
-    if [ $ADD_TO_AUTOSTART -eq 0 ]; then
-        echo -e "#!/bin/bash\n$SUDO modprobe zram\n$SUDO sh -c 'echo $ZRAM_SIZE > /sys/block/zram/disksize'\n$SUDO mkswap /dev/zram0\n$SUDO swapon /dev/zram0" | $SUDO tee /etc/init.d/zram_setup > /dev/null
-        $SUDO chmod +x /etc/init.d/zram_setup
-        $SUDO update-rc.d zram_setup defaults
-    fi
-
-    dialog --msgbox "zram настроен успешно!" 6 30
-else
-    dialog --msgbox "Скрипт не был запущен." 6 30
-fi
-
-# Удаление временного файла
-rm -f /tmp/zram_size
+    # Добав
