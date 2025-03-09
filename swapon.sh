@@ -89,4 +89,17 @@ if [ $RUN_SCRIPT -eq 0 ]; then
     # Добавление в автозапуск, если выбрано
     if [ $ADD_TO_AUTOSTART -eq 0 ]; then
         echo -e "ZRAM_SIZE=$ZRAM_SIZE\nADD_TO_AUTOSTART=0" | $SUDO tee $ZRAM_CONFIG > /dev/null
-        echo -e "#!/bin/bash\n$SUDO modprobe zram\n$SUDO sh -c 'echo \$ZRAM_SIZE > /sys/block/zram/disksize'\n$SUDO mkswap /dev
+        echo -e "#!/bin/bash\n$SUDO modprobe zram\n$SUDO sh -c 'echo \$ZRAM_SIZE > /sys/block
+        echo -e "#!/bin/bash\n$SUDO modprobe zram\n$SUDO sh -c 'echo \$ZRAM_SIZE > /sys/block/zram/disksize'\n$SUDO mkswap /dev/zram0\n$SUDO swapon /dev/zram0" | $SUDO tee /etc/init.d/zram_setup > /dev/null
+        $SUDO chmod +x /etc/init.d/zram_setup
+        $SUDO update-rc.d zram_setup defaults
+    fi
+
+    dialog --msgbox "zram настроен успешно!" 6 30
+else
+    dialog --msgbox "Скрипт не был запущен." 6 30
+fi
+
+# Удаление временного файла
+rm -f /tmp/zram_size
+rm -f /tmp/zram_size
