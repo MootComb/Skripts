@@ -38,10 +38,10 @@ if [ -f "$ZRAM_CONFIG" ]; then
     source "$ZRAM_CONFIG"
     
     # Отображение текущих настроек
-    dialog --msgbox "Текущие настройки ZRAM:\nРазмер: $ZRAM_SIZE\nАвтозапуск: $(if [ "$ADD_TO_AUTOSTART" -eq 1 ]; then echo "Включен"; else echo "Выключен"; fi)" 10 50
+    dialog --msgbox "Текущие настройки ZRAM:\nРазмер: $ZRAM_SIZE\nАвтозапуск: $(if [ "$ADD_TO_AUTOSTART" -eq 0 ]; then echo "Включен"; else echo "Выключен"; fi)" 10 50
     
     # Запрос на удаление настроек ZRAM
-    if dialog --yesno "Хотите удалить настройки zram?" 7 40; then
+    if dialog --yesno "Для продолжения удалить настройки zram?" 7 40; then
         # Удаление конфигурационного файла
         rm -f "$ZRAM_CONFIG"
         echo "Настройки ZRAM удалены."
@@ -61,9 +61,9 @@ if [ -f "$ZRAM_CONFIG" ]; then
             $SUDO systemctl daemon-reload
             echo "ZRAM удален из автозапуска."
         fi
-        exit 1
-    else
         dialog --msgbox "Продолжаем выполнение скрипта." 6 30
+    else
+        exit 1
     fi
 fi
 
