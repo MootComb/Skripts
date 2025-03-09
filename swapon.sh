@@ -53,12 +53,6 @@ if [ -f "$ZRAM_CONFIG" ]; then
             echo "ZRAM удален из текущего сеанса."
         fi
 
-        # Удаление скрипта автозагрузки, если он существует
-        if [ -f /etc/init.d/zram_setup ]; then
-            $SUDO rm -f /etc/init.d/zram_setup
-            $SUDO update-rc.d -f zram_setup remove
-        fi
-
         # Удаление systemd сервиса, если он существует
         if [ -f /etc/systemd/system/zram_setup.service ]; then
             $SUDO systemctl stop zram_setup.service
@@ -115,23 +109,23 @@ if [ $RUN_SCRIPT -eq 0 ]; then
     if [ $ADD_TO_AUTOSTART -eq 0 ]; then
         echo -e "ZRAM_SIZE=$ZRAM_SIZE\nADD_TO_AUTOSTART=0" | $SUDO tee $ZRAM_CONFIG > /dev/null
         
-        # Создание скрипта автозагрузки
-        echo -e "#!/bin/bash\n$SUDO modprobe zram\n$SUDO sh -c 'echo \$ZRAM_SIZE > /sys/block/zram0/disksize'\n$SUDO mkswap /dev/zram0\n$SUDO swapon /dev/zram0" | $SUDO tee /etc/init.d/zram_setup > /dev/null
+        # Создание systemd сервиса
+        echo -e "[Unit]\nDescription=ZRAM Setup\n\n[Service]\nType=oneshot\nExecStart=/usr/local/bin/zram_setup.sh\nRemainAfterExit=yes\n\n[Install]\nWantedBy=multi-user.target" | $SUDO tee /etc/systemd/system/zram_setup.service > /dev/null
         
-        # Проверка, существует ли init.d
-        if [ -d /etc/init.d ]; then
-            $SUDO chmod +x /etc/init.d/zram_setup
-            $SUDO update-rc.d zram_setup defaults
-        else
-            echo "Директория /etc/init.d не найдена. Возможно, используется systemd."
-            # Здесь можно добавить код для создания systemd сервиса, если это необходимо
-        fi
+        # Создание скрипта для настройки ZRAM
+        echo -e "#!/bin/bash\n$SUDO modprobe zram\n$SUDO sh -c 'echo \$ZRAM_SIZE > /sys/block/zram0/disksize'\n$SUDO mkswap /dev/zram0\n$SUDO swapon /dev/zram0" | $SUDO tee /usr/local/bin/zram_setup.sh > /dev/null
+        
+        # Установка прав на выполнение
+        $SUDO chmod +x /usr/local/bin/zram_setup.sh
+        
+        # Включение сервиса
+        $SUDO systemctl enable zram_setup.service
     fi
     
-    echo "zram успешно настроен."
+    dialog --msgbox "ZRAM успешно настроен!" 6 30
     exit 0  # Остановка выполнения скрипта после успешной настройки
 else
-    echo "Вы прервали выполнение скрипта."
+    dialog --msgbox "Вы прервали выполнение скрипта." 6 30
     exit 0
 fi
 
