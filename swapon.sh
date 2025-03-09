@@ -38,7 +38,7 @@ if [ -f "$ZRAM_CONFIG" ]; then
     source "$ZRAM_CONFIG"
     
     # Отображение текущих настроек
-    dialog --msgbox "Текущие настройки ZRAM:\nРазмер: $ZRAM_SIZE\nАвтозапуск: $(if [ "$ADD_TO_AUTOSTART" -eq 0 ]; then echo "Включен"; else echo "Выключен"; fi)" 10 50
+    dialog --msgbox "Текущие настройки ZRAM:\n Размер: $ZRAM_SIZE\nАвтозапуск: $(if [ "$ADD_TO_AUTOSTART" -eq 0 ]; then echo "Включен"; else echo "Выключен"; fi)" 10 50
     
     # Запрос на удаление настроек ZRAM
     if dialog --yesno "Для продолжения, удалить настройки zram?" 7 40; then
