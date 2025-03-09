@@ -62,8 +62,6 @@ if [ -f "$ZRAM_CONFIG" ]; then
             echo "ZRAM удален из автозапуска."
         fi
         exit 1
-    else
-        dialog --msgbox "Продолжаем выполнение скрипта." 6 30
     fi
 fi
 
