@@ -99,23 +99,38 @@ RUN_SCRIPT=$?
 # Если пользователь согласен запустить скрипт
 if [ $RUN_SCRIPT -eq 0 ]; then
     echo "Настройка zram..."
+    
+    # Загрузка модуля zram
     $SUDO modprobe zram
-    echo $ZRAM_SIZE | $SUDO tee /sys/block/zram/disksize > /dev/null
+
+    # Установка размера zram
+    echo $ZRAM_SIZE | $SUDO tee /sys/block/zram0/disksize > /dev/null
+
+    # Создание swap на zram
     $SUDO mkswap /dev/zram0
     $SUDO swapon /dev/zram0
 
     # Добавление в автозапуск, если выбрано
     if [ $ADD_TO_AUTOSTART -eq 0 ]; then
         echo -e "ZRAM_SIZE=$ZRAM_SIZE\nADD_TO_AUTOSTART=0" | $SUDO tee $ZRAM_CONFIG > /dev/null
-        echo -e "#!/bin/bash\n$SUDO modprobe zram\n$SUDO sh -c 'echo \$ZRAM_SIZE > /sys/block/zram/disksize'\n$SUDO mkswap /dev/zram0\n$SUDO swapon /dev/zram0" | $SUDO tee /etc/init.d/zram_setup > /dev/null
-        $SUDO chmod +x /etc/init.d/zram_setup
-        $SUDO update-rc.d zram_setup defaults
+        
+        # Создание скрипта автозагрузки
+        echo -e "#!/bin/bash\n$SUDO modprobe zram\n$SUDO sh -c 'echo \$ZRAM_SIZE > /sys/block/zram0/disksize'\n$SUDO mkswap /dev/zram0\n$SUDO swapon /dev/zram0" | $SUDO tee /etc/init.d/zram_setup > /dev/null
+        
+        # Проверка, существует ли init.d
+        if [ -d /etc/init.d ]; then
+            $SUDO chmod +x /etc/init.d/zram_setup
+            $SUDO update-rc.d zram_setup defaults
+        else
+            echo "Директория /etc/init.d не найдена. Возможно, используется systemd."
+            # Здесь можно добавить код для создания systemd сервиса, если это необходимо
+        fi
     fi
-
-    dialog --msgbox "zram настроен успешно!" 6 30
+    
+    echo "zram успешно настроен."
     exit 0  # Остановка выполнения скрипта после успешной настройки
 else
-    dialog --msgbox "Вы прервали выполнение скрипта." 6 30
+    echo "Вы прервали выполнение скрипта."
     exit 0
 fi
 
