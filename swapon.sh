@@ -120,6 +120,8 @@ if [ $RUN_SCRIPT -eq 0 ]; then
         # Включение сервиса
         $SUDO systemctl enable zram_setup.service
     fi
+
+    # Сохранение настроек
     echo -e "ZRAM_SIZE=$ZRAM_SIZE\nADD_TO_AUTOSTART=$ADD_TO_AUTOSTART" | $SUDO tee $ZRAM_CONFIG > /dev/null
     echo "ZRAM успешно настроен."
     exit 0  # Остановка выполнения скрипта после успешной настройки
