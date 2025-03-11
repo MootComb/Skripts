@@ -58,7 +58,13 @@ if [ -f "$ZRAM_CONFIG" ]; then
             $SUDO modprobe -r zram     # Удаление модуля ZRAM
             echo "ZRAM удален из текущего сеанса."
         fi
-
+        
+        # Удаление временного скрипта, если он существует
+        if [ -f "$ZRAM_SETUP_SCRIPT" ]; then
+            $SUDO rm -f "$ZRAM_SETUP_SCRIPT"
+            echo "Временный скрипт ZRAM удален."
+        fi
+        
         # Удаление systemd сервиса, если он существует
         if [ -f /etc/systemd/system/zram_setup.service ]; then
             $SUDO systemctl stop zram_setup.service
