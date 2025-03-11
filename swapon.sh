@@ -49,7 +49,7 @@ if [ -f "$ZRAM_CONFIG" ]; then
     # Запрос на удаление настроек ZRAM
     if dialog --yesno "Для продолжения, удалить настройки zram?" 7 40; then
         # Удаление конфигурационного файла
-        rm -f "$ZRAM_CONFIG"
+        $SUDO rm -f "$ZRAM_CONFIG"
         echo "Настройки ZRAM удалены."
 
         # Удаление ZRAM из текущего сеанса, если он существует
