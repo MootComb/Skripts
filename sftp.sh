@@ -20,11 +20,19 @@ fi
 # Проверка, загружен ли модуль fuse
 if ! lsmod | grep fuse &> /dev/null; then
     echo "Модуль fuse не загружен. Пытаюсь загрузить его..."
-    modprobe fuse || error "Не удалось загрузить модуль fuse."
+    modprobe fuse || {
+        echo "Не удалось загрузить модуль fuse. Проверяю, установлен ли пакет fuse..."
+        if ! dpkg -l | grep fuse &> /dev/null; then
+            echo "Пакет fuse не установлен. Устанавливаю..."
+            apt update && apt install -y fuse || error "Не удалось установить пакет fuse."
+        fi
+        echo "Пытаюсь снова загрузить модуль fuse..."
+        modprobe fuse || error "Не удалось загрузить модуль fuse. Пожалуйста, проверьте конфигурацию ядра."
+    }
 fi
 
 # Параметры монтирования
-HOST=$(dialog --inputbox "Введите хост SFTP (например, example.com или 192.168.1.1) 1.4:" 10 60 3>&1 1>&2 2>&3)
+HOST=$(dialog --inputbox "Введите хост SFTP (например, example.com или 192.168.1.1):" 10 60 3>&1 1>&2 2>&3)
 [ $? -ne 0 ] && exit 1
 
 PORT=$(dialog --inputbox "Введите порт SFTP (по умолчанию 22):" 10 60 "22" 3>&1 1>&2 2>&3)
