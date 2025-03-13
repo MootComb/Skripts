@@ -24,7 +24,7 @@ if ! lsmod | grep fuse &> /dev/null; then
 fi
 
 # Параметры монтирования
-HOST=$(dialog --inputbox "Введите хост SFTP (например, example.com или 192.168.1.1):" 10 60 3>&1 1>&2 2>&3)
+HOST=$(dialog --inputbox "Введите хост SFTP (например, example.com или 192.168.1.1) 1.4:" 10 60 3>&1 1>&2 2>&3)
 [ $? -ne 0 ] && exit 1
 
 PORT=$(dialog --inputbox "Введите порт SFTP (по умолчанию 22):" 10 60 "22" 3>&1 1>&2 2>&3)
