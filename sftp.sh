@@ -9,22 +9,34 @@ error() {
 # Проверка наличия необходимых пакетов
 if ! command -v sshfs &> /dev/null; then
     echo "sshfs не установлен. Устанавливаю..."
-    apt update && apt install -y sshfs || error "Не удалось установить sshfs."
+    if command -v sudo &> /dev/null; then
+        sudo apt update && sudo apt install -y sshfs || error "Не удалось установить sshfs."
+    else
+        apt update && apt install -y sshfs || error "Не удалось установить sshfs."
+    fi
 fi
 
 if ! command -v dialog &> /dev/null; then
     echo "dialog не установлен. Устанавливаю..."
-    apt update && apt install -y dialog || error "Не удалось установить dialog."
+    if command -v sudo &> /dev/null; then
+        sudo apt update && sudo apt install -y dialog || error "Не удалось установить dialog."
+    else
+        apt update && apt install -y dialog || error "Не удалось установить dialog."
+    fi
 fi
 
 # Проверка, загружен ли модуль fuse
 if ! lsmod | grep fuse &> /dev/null; then
     echo "Модуль fuse не загружен. Пожалуйста, выполните 'sudo modprobe fuse' для его загрузки."
-    exit 1
+    if command -v sudo &> /dev/null; then
+        sudo modprobe fuse || error "Не удалось загрузить модуль fuse."
+    else
+        exit 1
+    fi
 fi
 
 # Параметры монтирования
-HOST=$(dialog --inputbox "Введите хост SFTP (например, example.com или 192.168.1.1) 1.3:" 10 60 3>&1 1>&2 2>&3)
+HOST=$(dialog --inputbox "Введите хост SFTP (например, example.com или 192.168.1.1):" 10 60 3>&1 1>&2 2>&3)
 [ $? -ne 0 ] && exit 1
 
 PORT=$(dialog --inputbox "Введите порт SFTP (по умолчанию 22):" 10 60 "22" 3>&1 1>&2 2>&3)
@@ -65,7 +77,12 @@ if mount | grep "$LOCAL_DIR" > /dev/null; then
 fi
 
 # Монтирование SFTP с указанием порта
-sshfs -p "$PORT" "$USER@$HOST:$REMOTE_DIR" "$LOCAL_DIR" -o password_stdin <<< "$PASSWORD"
+if command -v sudo &> /dev/null; then
+    sudo sshfs -p "$PORT" "$USER@$HOST:$REMOTE_DIR" "$LOCAL_DIR" -o password_stdin <<< "$PASSWORD"
+else
+    sshfs -p "$PORT" "$USER@$HOST:$REMOTE_DIR" "$LOCAL_DIR" -o password_stdin <<< "$PASSWORD"
+fi
+
 if [ $? -ne 0 ]; then
     error "Не удалось смонтировать SFTP."
 fi
@@ -81,16 +98,22 @@ Description=Mount SFTP
 After=network.target
 
 [Service]
-ExecStart=/usr/bin/sshfs -p $PORT $USER@$HOST:$REMOTE_DIR $LOCAL_DIR -o password_stdin <<< \"$PASSWORD\"
+ExecStart=$(command -v sshfs) -p $PORT $USER@$HOST:$REMOTE_DIR $LOCAL_DIR -o password_stdin <<< \"$PASSWORD\"
 ExecStop=/bin/fusermount -u $LOCAL_DIR
 Restart=always
 
 [Install]
 WantedBy=default.target" > "$SERVICE_FILE"
 
-    systemctl --user daemon-reload
-    systemctl --user enable sftp-mount.service
-    systemctl --user start sftp-mount.service
+    if command -v sudo &> /dev/null; then
+        sudo systemctl --user daemon-reload
+        sudo systemctl --user enable sftp-mount.service
+        sudo systemctl --user start sftp-mount.service
+    else
+        systemctl --user daemon-reload
+        systemctl --user enable sftp-mount.service
+        systemctl --user start sftp-mount.service
+    fi
 
     dialog --msgbox "Автозапуск добавлен." 6 40
 else
