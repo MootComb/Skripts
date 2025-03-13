@@ -17,19 +17,8 @@ if ! command -v dialog &> /dev/null; then
     apt update && apt install -y dialog || error "Не удалось установить dialog."
 fi
 
-# Проверка, загружен ли модуль fuse
-if ! lsmod | grep fuse &> /dev/null; then
-    echo "Модуль fuse не загружен. Пытаюсь загрузить его..."
-    modprobe fuse || {
-        echo "Не удалось загрузить модуль fuse. Проверяю, установлен ли пакет fuse..."
-        if ! dpkg -l | grep fuse &> /dev/null; then
-            echo "Пакет fuse не установлен. Устанавливаю..."
-            apt update && apt install -y fuse || error "Не удалось установить пакет fuse."
-        fi
-        echo "Пытаюсь снова загрузить модуль fuse..."
-        modprobe fuse || error "Не удалось загрузить модуль fuse. Пожалуйста, проверьте конфигурацию ядра."
-    }
-fi
+# Попытка загрузить модуль fuse
+modprobe fuse || error "Не удалось загрузить модуль fuse. Пожалуйста, проверьте конфигурацию ядра."
 
 # Параметры монтирования
 HOST=$(dialog --inputbox "Введите хост SFTP (например, example.com или 192.168.1.1):" 10 60 3>&1 1>&2 2>&3)
