@@ -17,6 +17,12 @@ if ! command -v dialog &> /dev/null; then
     apt update && apt install -y dialog || error "Не удалось установить dialog."
 fi
 
+# Проверка, загружен ли модуль fuse
+if ! lsmod | grep fuse &> /dev/null; then
+    echo "Модуль fuse не загружен. Пожалуйста, выполните 'sudo modprobe fuse' для его загрузки."
+    exit 1
+fi
+
 # Параметры монтирования
 HOST=$(dialog --inputbox "Введите хост SFTP (например, example.com или 192.168.1.1):" 10 60 3>&1 1>&2 2>&3)
 [ $? -ne 0 ] && exit 1
@@ -30,10 +36,10 @@ REMOTE_DIR=$(dialog --inputbox "Введите удаленную директо
 LOCAL_DIR=$(dialog --inputbox "Введите локальную директорию для монтирования (например, /mnt/sftp):" 10 60 3>&1 1>&2 2>&3)
 [ $? -ne 0 ] && exit 1
 
-USER=$(dialog --inputbox "Введите имя пользователя:" 10 60 3>&1 1>&2 2>&3)
+USER=$(dialog --inputbox "Введите имя пользователя для подключения к SFTP:" 10 60 3>&1 1>&2 2>&3)
 [ $? -ne 0 ] && exit 1
 
-PASSWORD=$(dialog --passwordbox "Введите пароль для пользователя "$USER":" 10 60 3>&1 1>&2 2>&3)
+PASSWORD=$(dialog --passwordbox "Введите пароль для пользователя:" 10 60 3>&1 1>&2 2>&3)
 [ $? -ne 0 ] && exit 1
 
 # Создание локальной директории, если она не существует
@@ -88,4 +94,7 @@ WantedBy=default.target" > "$SERVICE_FILE"
 
     dialog --msgbox "Автозапуск добавлен." 6 40
 else
-    dialog --msgbox "Автозапуск не добав
+    dialog --msgbox "Автозапуск не добавлен." 6 40
+fi
+
+dialog --msgbox "SFTP успешно смонтирован!" 6 40
