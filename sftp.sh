@@ -17,9 +17,6 @@ if ! command -v dialog &> /dev/null; then
     apt update && apt install -y dialog || error "Не удалось установить dialog."
 fi
 
-# Попытка загрузить модуль fuse
-modprobe fuse || error "Не удалось загрузить модуль fuse. Пожалуйста, проверьте конфигурацию ядра."
-
 # Параметры монтирования
 HOST=$(dialog --inputbox "Введите хост SFTP (например, example.com или 192.168.1.1):" 10 60 3>&1 1>&2 2>&3)
 [ $? -ne 0 ] && exit 1
