@@ -9,30 +9,18 @@ error() {
 # Проверка наличия необходимых пакетов
 if ! command -v sshfs &> /dev/null; then
     echo "sshfs не установлен. Устанавливаю..."
-    if command -v sudo &> /dev/null; then
-        sudo apt update && sudo apt install -y sshfs || error "Не удалось установить sshfs."
-    else
-        apt update && apt install -y sshfs || error "Не удалось установить sshfs."
-    fi
+    apt update && apt install -y sshfs || error "Не удалось установить sshfs."
 fi
 
 if ! command -v dialog &> /dev/null; then
     echo "dialog не установлен. Устанавливаю..."
-    if command -v sudo &> /dev/null; then
-        sudo apt update && sudo apt install -y dialog || error "Не удалось установить dialog."
-    else
-        apt update && apt install -y dialog || error "Не удалось установить dialog."
-    fi
+    apt update && apt install -y dialog || error "Не удалось установить dialog."
 fi
 
 # Проверка, загружен ли модуль fuse
 if ! lsmod | grep fuse &> /dev/null; then
-    echo "Модуль fuse не загружен. Пожалуйста, выполните 'sudo modprobe fuse' для его загрузки."
-    if command -v sudo &> /dev/null; then
-        sudo modprobe fuse || error "Не удалось загрузить модуль fuse."
-    else
-        exit 1
-    fi
+    echo "Модуль fuse не загружен. Пытаюсь загрузить его..."
+    modprobe fuse || error "Не удалось загрузить модуль fuse."
 fi
 
 # Параметры монтирования
@@ -77,12 +65,7 @@ if mount | grep "$LOCAL_DIR" > /dev/null; then
 fi
 
 # Монтирование SFTP с указанием порта
-if command -v sudo &> /dev/null; then
-    sudo sshfs -p "$PORT" "$USER@$HOST:$REMOTE_DIR" "$LOCAL_DIR" -o password_stdin <<< "$PASSWORD"
-else
-    sshfs -p "$PORT" "$USER@$HOST:$REMOTE_DIR" "$LOCAL_DIR" -o password_stdin <<< "$PASSWORD"
-fi
-
+sshfs -p "$PORT" "$USER@$HOST:$REMOTE_DIR" "$LOCAL_DIR" -o password_stdin <<< "$PASSWORD"
 if [ $? -ne 0 ]; then
     error "Не удалось смонтировать SFTP."
 fi
@@ -105,15 +88,10 @@ Restart=always
 [Install]
 WantedBy=default.target" > "$SERVICE_FILE"
 
-    if command -v sudo &> /dev/null; then
-        sudo systemctl --user daemon-reload
-        sudo systemctl --user enable sftp-mount.service
-        sudo systemctl --user start sftp-mount.service
-    else
-        systemctl --user daemon-reload
-        systemctl --user enable sftp-mount.service
-        systemctl --user start sftp-mount.service
-    fi
+    # Перезагрузка демона systemd и включение службы
+    systemctl --user daemon-reload
+    systemctl --user enable sftp-mount.service
+    systemctl --user start sftp-mount.service
 
     dialog --msgbox "Автозапуск добавлен." 6 40
 else
