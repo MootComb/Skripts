@@ -18,19 +18,22 @@ if ! command -v dialog &> /dev/null; then
 fi
 
 # Параметры монтирования
-HOST=$(dialog --inputbox "Введите хост SFTP:" 8 40 3>&1 1>&2 2>&3)
+HOST=$(dialog --inputbox "Введите хост SFTP (например, example.com или 192.168.1.1):" 10 60 3>&1 1>&2 2>&3)
 [ $? -ne 0 ] && exit 1
 
-REMOTE_DIR=$(dialog --inputbox "Введите удаленную директорию:" 8 40 3>&1 1>&2 2>&3)
+PORT=$(dialog --inputbox "Введите порт SFTP (по умолчанию 22):" 10 60 "22" 3>&1 1>&2 2>&3)
 [ $? -ne 0 ] && exit 1
 
-LOCAL_DIR=$(dialog --inputbox "Введите локальную директорию для монтирования:" 8 40 3>&1 1>&2 2>&3)
+REMOTE_DIR=$(dialog --inputbox "Введите удаленную директорию (например, /home/user):" 10 60 3>&1 1>&2 2>&3)
 [ $? -ne 0 ] && exit 1
 
-USER=$(dialog --inputbox "Введите имя пользователя:" 8 40 3>&1 1>&2 2>&3)
+LOCAL_DIR=$(dialog --inputbox "Введите локальную директорию для монтирования (например, /mnt/sftp):" 10 60 3>&1 1>&2 2>&3)
 [ $? -ne 0 ] && exit 1
 
-PASSWORD=$(dialog --passwordbox "Введите пароль:" 8 40 3>&1 1>&2 2>&3)
+USER=$(dialog --inputbox "Введите имя пользователя для подключения к SFTP:" 10 60 3>&1 1>&2 2>&3)
+[ $? -ne 0 ] && exit 1
+
+PASSWORD=$(dialog --passwordbox "Введите пароль для пользователя:" 10 60 3>&1 1>&2 2>&3)
 [ $? -ne 0 ] && exit 1
 
 # Создание локальной директории, если она не существует
@@ -55,8 +58,8 @@ if mount | grep "$LOCAL_DIR" > /dev/null; then
     fi
 fi
 
-# Монтирование SFTP
-sshfs "$USER@$HOST:$REMOTE_DIR" "$LOCAL_DIR" -o password_stdin <<< "$PASSWORD"
+# Монтирование SFTP с указанием порта
+sshfs -p "$PORT" "$USER@$HOST:$REMOTE_DIR" "$LOCAL_DIR" -o password_stdin <<< "$PASSWORD"
 if [ $? -ne 0 ]; then
     error "Не удалось смонтировать SFTP."
 fi
@@ -72,7 +75,7 @@ Description=Mount SFTP
 After=network.target
 
 [Service]
-ExecStart=/usr/bin/sshfs $USER@$HOST:$REMOTE_DIR $LOCAL_DIR -o password_stdin <<< \"$PASSWORD\"
+ExecStart=/usr/bin/sshfs -p $PORT $USER@$HOST:$REMOTE_DIR $LOCAL_DIR -o password_stdin <<< \"$PASSWORD\"
 ExecStop=/bin/fusermount -u $LOCAL_DIR
 Restart=always
 
@@ -85,7 +88,4 @@ WantedBy=default.target" > "$SERVICE_FILE"
 
     dialog --msgbox "Автозапуск добавлен." 6 40
 else
-    dialog --msgbox "Автозапуск не добавлен." 6 40
-fi
-
-dialog --msgbox "SFTP успешно смонтирован!" 6 40
+    dialog --msgbox "Автозапуск не добав
