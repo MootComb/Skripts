@@ -4,7 +4,7 @@
 AUTOSTART_SCRIPT="/usr/local/bin/autostart.sh"
 
 # Создание скрипта autostart.sh
-echo "#!/bin/bash" > $AUTOSTART_SCRIPT
+echo "#!/bin/sh" > $AUTOSTART_SCRIPT
 echo "echo 'Скрипт autostart.sh выполнен!'" >> $AUTOSTART_SCRIPT
 echo "exit 0" >> $AUTOSTART_SCRIPT
 
