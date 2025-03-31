@@ -3,3 +3,5 @@ bash -c "$(wget -qLO - https://raw.githubusercontent.com/MootComb/Skripts/main/s
 bash -c "$(wget -qLO - https://raw.githubusercontent.com/MootComb/Skripts/main/autostart.sh)"
 
 bash -c "$(wget -qLO - https://raw.githubusercontent.com/MootComb/Skripts/main/sftp.sh)"
+
+bash -c "$(wget -qLO - https://raw.githubusercontent.com/MootComb/Skripts/main/usb.sh)"
