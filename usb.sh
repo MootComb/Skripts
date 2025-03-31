@@ -2,55 +2,50 @@
 
 # Функция для получения списка LXC контейнеров
 get_lxc_containers() {
-    echo "Список LXC контейнеров:"
-    pct list | awk 'NR>1 {print $1, $2}' # Выводим ID и имя контейнера
+    echo "Доступные LXC контейнеры:"
+    pct list | awk 'NR>1 {print $1, $2}' # Пропускаем заголовок
 }
 
-# Функция для получения списка USB устройств
+# Функция для проверки примонтированных и не примонтированных дисков
 get_usb_devices() {
-    echo "Список USB устройств:"
-    lsblk -o NAME,SIZE,MOUNTPOINT | grep -E 'usb|disk' | awk '{print $1, $2, $3}'
+    echo "Не примонтированные USB устройства:"
+    lsblk -o NAME,SIZE,MOUNTPOINT | grep -E 'disk' | grep -v 'part' | grep -v '/mnt' | awk '$3 == "" {print $1, $2}'
 }
 
-# Функция для проброса диска в LXC контейнер
-attach_disk_to_lxc() {
-    local lxc_id=$1
+# Функция для монтирования диска
+mount_disk() {
+    local disk=$1
+    local mount_point="/mnt/$disk"
+    mkdir -p $mount_point
+    mount /dev/$disk $mount_point
+    echo "$disk $mount_point" >> /etc/fstab
+    echo "Диск $disk смонтирован в $mount_point и добавлен в /etc/fstab."
+}
+
+# Функция для разрешения доступа к диску в LXC контейнере
+grant_disk_access() {
+    local container_id=$1
     local disk=$2
-    pct set $lxc_id -mp0 /dev/$disk
-    echo "Диск /dev/$disk проброшен в LXC контейнер $lxc_id."
+    pct set $container_id -mp0 /dev/$disk
+    echo "Доступ к диску $disk разрешен для LXC контейнера $container_id."
 }
 
-# Получаем список LXC контейнеров
+# Основной скрипт
 get_lxc_containers
-read -p "Выберите ID LXC контейнера: " lxc_id
+read -p "Выберите ID LXC контейнера: " container_id
 
-# Проверяем, существует ли контейнер
-if ! pct status $lxc_id &>/dev/null; then
-    echo "Контейнер с ID $lxc_id не найден."
-    exit 1
-fi
-
-# Получаем список USB устройств
 get_usb_devices
-read -p "Введите имя USB устройства для проброса (например, sdb1): " usb_device
+read -p "Введите имя не примонтированного диска для монтирования (например, sdb): " disk_to_mount
 
-# Проверяем, примонтировано ли устройство
-mountpoint=$(lsblk -o NAME,MOUNTPOINT | grep $usb_device | awk '{print $2}')
-if [ -n "$mountpoint" ]; then
-    echo "Устройство /dev/$usb_device уже примонтировано в $mountpoint."
-else
-    echo "Устройство /dev/$usb_device не примонтировано."
-    read -p "Хотите примонтировать устройство? (y/n): " mount_choice
-    if [ "$mount_choice" == "y" ]; then
-        sudo mount /dev/$usb_device /mnt
-        echo "Устройство /dev/$usb_device примонтировано в /mnt."
-    fi
-fi
+mount_disk $disk_to_mount
 
-# Спрашиваем, хотите ли вы пробросить диск в LXC контейнер
-read -p "Хотите пробросить диск /dev/$usb_device в LXC контейнер $lxc_id? (y/n): " attach_choice
-if [ "$attach_choice" == "y" ]; then
-    attach_disk_to_lxc $lxc_id $usb_device
+# Список всех дисков
+echo "Все диски:"
+lsblk
+
+read -p "Хотите ли вы разрешить доступ к диску $disk_to_mount в LXC контейнере $container_id? (y/n): " answer
+if [[ $answer == "y" ]]; then
+    grant_disk_access $container_id $disk_to_mount
 else
-    echo "Диск не был проброшен в контейнер."
+    echo "Доступ к диску не был разрешен."
 fi
