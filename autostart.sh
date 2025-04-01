@@ -21,6 +21,7 @@ if systemctl list-units --full --all | grep -q "$SERVICE_NAME"; then
         # Удаление файла службы
         if $SUDO rm "$SERVICE_FILE"; then
             echo "Служба $SERVICE_NAME успешно удалена."
+        exit 0
         else
             echo "Ошибка: не удалось удалить службу $SERVICE_NAME."
         fi
@@ -29,7 +30,6 @@ if systemctl list-units --full --all | grep -q "$SERVICE_NAME"; then
         $SUDO systemctl daemon-reload
     else
         echo "Авто запуск $SERVICE_NAME не был удален."
-        exit 0
     fi
 else
     echo "Служба $SERVICE_NAME не найдена."
