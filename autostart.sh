@@ -87,7 +87,7 @@ if ! $SUDO systemctl enable "$SERVICE_NAME"; then
     exit 1
 fi
 
-# Запустить службу (по желанию)
+# Запустить службу
 if ! $SUDO systemctl start "$SERVICE_NAME"; then
     echo "Ошибка: не удалось запустить службу $SERVICE_NAME."
     exit 1
