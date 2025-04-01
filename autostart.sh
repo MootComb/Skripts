@@ -65,9 +65,6 @@ if ! $SUDO systemctl start autostart.service; then
     exit 1
 fi
 
-# Вывод расположения скрипта
-echo "Скрипт autostart.sh расположен по адресу: $AUTOSTART_SCRIPT"
-
 # Запрос на открытие скрипта
 while true; do
     read -p "Хотите открыть $AUTOSTART_SCRIPT для редактирования? (y/n): " OPEN_SCRIPT
@@ -93,5 +90,5 @@ while true; do
     fi
 done
 
-# Вывод расположения скрипта после закрытия редактора
+# Вывод расположения скрипта после завершения всех операций
 echo "Скрипт autostart.sh расположен по адресу: $AUTOSTART_SCRIPT"
