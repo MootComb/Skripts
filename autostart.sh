@@ -8,24 +8,29 @@ AUTOSTART_SCRIPT="/usr/local/mootcomb/autostart.sh"  # Путь к вашему 
 SERVICE_FILE="/etc/systemd/system/autostart.service"  # Файл службы systemd
 
 # Создание скрипта autostart.sh
-echo "#!/bin/sh" | $SUDO tee "$AUTOSTART_SCRIPT" > /dev/null
-echo "# Системный демон (systemd) находится в /lib/systemd/system/" | $SUDO tee -a "$AUTOSTART_SCRIPT" > /dev/null
-echo "echo 'Скрипт autostart.sh выполнен!'" | $SUDO tee -a "$AUTOSTART_SCRIPT" > /dev/null
+{
+    echo "#!/bin/sh"
+    echo "# Системный демон (systemd) находится в /lib/systemd/system/"
+    echo "echo 'Скрипт autostart.sh выполнен!"
+    echo "exit 0"
+} | $SUDO tee "$AUTOSTART_SCRIPT" > /dev/null
 
 # Сделать скрипт исполняемым
 $SUDO chmod +x "$AUTOSTART_SCRIPT"
 
 # Создание файла службы systemd
-echo "[Unit]" | $SUDO tee "$SERVICE_FILE" > /dev/null
-echo "Description=Autostart Script" | $SUDO tee -a "$SERVICE_FILE" > /dev/null
-echo "" | $SUDO tee -a "$SERVICE_FILE" > /dev/null
-echo "[Service]" | $SUDO tee -a "$SERVICE_FILE" > /dev/null
-echo "ExecStart=$AUTOSTART_SCRIPT" | $SUDO tee -a "$SERVICE_FILE" > /dev/null
-echo "Type=oneshot" | $SUDO tee -a "$SERVICE_FILE" > /dev/null
-echo "RemainAfterExit=yes" | $SUDO tee -a "$SERVICE_FILE" > /dev/null
-echo "" | $SUDO tee -a "$SERVICE_FILE" > /dev/null
-echo "[Install]" | $SUDO tee -a "$SERVICE_FILE" > /dev/null
-echo "WantedBy=multi-user.target" | $SUDO tee -a "$SERVICE_FILE" > /dev/null
+{
+    echo "[Unit]"
+    echo "Description=Autostart Script"
+    echo ""
+    echo "[Service]"
+    echo "ExecStart=$AUTOSTART_SCRIPT"
+    echo "Type=oneshot"
+    echo "RemainAfterExit=yes"
+    echo ""
+    echo "[Install]"
+    echo "WantedBy=multi-user.target"
+} | $SUDO tee "$SERVICE_FILE" > /dev/null
 
 # Активировать службу
 $SUDO systemctl enable autostart.service
