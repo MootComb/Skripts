@@ -8,6 +8,30 @@ AUTOSTART_SCRIPT="/usr/local/mootcomb/autostart.sh"  # Путь к вашему 
 SERVICE_FILE="/etc/systemd/system/autostart.service"  # Файл службы systemd
 SERVICE_NAME="autostart.service"  # Имя службы
 
+# Функция для редактирования скрипта и вывода его расположения
+edit() {
+    read -p "Хотите открыть $AUTOSTART_SCRIPT для редактирования? (y/n): " OPEN_SCRIPT
+    if [[ "$OPEN_SCRIPT" == "y" || "$OPEN_SCRIPT" == "Y" ]]; then
+        # Запрос на выбор редактора
+        while true; do
+            read -p "Выберите редактор (nano/vim): " EDITOR
+            if [[ "$EDITOR" == "nano" ]]; then
+                $SUDO nano "$AUTOSTART_SCRIPT"
+                break
+            elif [[ "$EDITOR" == "vim" ]]; then
+                $SUDO vim "$AUTOSTART_SCRIPT"
+                break
+            else
+                echo "Неверный выбор редактора. Пожалуйста, выберите nano или vim."
+            fi
+        done
+    fi
+
+    # Вывод расположения скрипта после завершения всех операций
+    echo "     "
+    echo "Скрипт autostart.sh расположен по адресу: $AUTOSTART_SCRIPT"
+}
+
 # Проверка существования systemd daemon
 if systemctl list-units --full --all | grep -q "$SERVICE_NAME"; then
     echo "Служба $SERVICE_NAME уже существует."
@@ -21,7 +45,7 @@ if systemctl list-units --full --all | grep -q "$SERVICE_NAME"; then
         # Удаление файла службы
         if $SUDO rm "$SERVICE_FILE"; then
             echo "Служба $SERVICE_NAME успешно удалена."
-        exit 0
+            exit 0
         else
             echo "Ошибка: не удалось удалить службу $SERVICE_NAME."
         fi
@@ -30,7 +54,7 @@ if systemctl list-units --full --all | grep -q "$SERVICE_NAME"; then
         $SUDO systemctl daemon-reload
     else
         echo "     "
-        echo "Скрипт autostart.sh расположен по адресу: $AUTOSTART_SCRIPT"
+        edit
         exit 0
     fi
 else
@@ -95,27 +119,5 @@ if ! $SUDO systemctl start "$SERVICE_NAME"; then
     exit 1
 fi
 
-# Запрос на открытие скрипта
-read -p "Хотите открыть $AUTOSTART_SCRIPT для редактирования? (y/n): " OPEN_SCRIPT
-if [[ "$OPEN_SCRIPT" == "y" || "$OPEN_SCRIPT" == "Y" ]]; then
-    # Запрос на выбор редактора
-    while true; do
-        read -p "Выберите редактор (nano/vim): " EDITOR
-        if [[ "$EDITOR" == "nano" ]]; then
-            $SUDO nano "$AUTOSTART_SCRIPT"
-            break
-        elif [[ "$EDITOR" == "vim" ]]; then
-            $SUDO vim "$AUTOSTART_SCRIPT"
-            break
-        else
-            echo "Неверный выбор редактора. Пожалуйста, выберите nano или vim."
-        fi
-    done
-#else
-#    echo "Редактирование скрипта отменено."
-#    exit 0
-fi
-
-# Вывод расположения скрипта после завершения всех операций
-echo "     "
-echo "Скрипт autostart.sh расположен по адресу: $AUTOSTART_SCRIPT"
+# Вызов функции для редактирования скрипта и вывода его расположения
+edit
