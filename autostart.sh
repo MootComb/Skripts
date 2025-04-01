@@ -29,7 +29,9 @@ if systemctl list-units --full --all | grep -q "$SERVICE_NAME"; then
         # Обновление systemd
         $SUDO systemctl daemon-reload
     else
-        echo "Авто запуск $SERVICE_NAME не был удален."
+        echo "     "
+        echo "Скрипт autostart.sh расположен по адресу: $AUTOSTART_SCRIPT"
+        exit 0
     fi
 else
     echo "Служба $SERVICE_NAME не найдена."
@@ -37,7 +39,7 @@ fi
 
 # Создание директории, если она не существует
 if ! $SUDO mkdir -p /usr/local/mootcomb; then
-    echo "Ошибка: не удалось создать директорию /usr/local/mootcomb."
+    echo "Ошибка: не удалось создать директорию /usr/local/mootcomb"
     exit 1
 fi
 
@@ -119,4 +121,5 @@ while true; do
 done
 
 # Вывод расположения скрипта после завершения всех операций
+echo "     "
 echo "Скрипт autostart.sh расположен по адресу: $AUTOSTART_SCRIPT"
