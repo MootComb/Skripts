@@ -8,7 +8,10 @@ AUTOSTART_SCRIPT="/usr/local/mootcomb/autostart.sh"  # Путь к вашему 
 SERVICE_FILE="/etc/systemd/system/autostart.service"  # Файл службы systemd
 
 # Создание директории, если она не существует
-$SUDO mkdir -p /usr/local/mootcomb
+if ! $SUDO mkdir -p /usr/local/mootcomb; then
+    echo "Ошибка: не удалось создать директорию /usr/local/mootcomb."
+    exit 1
+fi
 
 # Создание скрипта autostart.sh
 {
@@ -18,8 +21,17 @@ $SUDO mkdir -p /usr/local/mootcomb
     echo "exit 0"
 } | $SUDO tee "$AUTOSTART_SCRIPT" > /dev/null
 
+# Проверка успешности создания скрипта
+if [ $? -ne 0 ]; then
+    echo "Ошибка: не удалось создать файл $AUTOSTART_SCRIPT."
+    exit 1
+fi
+
 # Сделать скрипт исполняемым
-$SUDO chmod +x "$AUTOSTART_SCRIPT"
+if ! $SUDO chmod +x "$AUTOSTART_SCRIPT"; then
+    echo "Ошибка: не удалось сделать файл $AUTOSTART_SCRIPT исполняемым."
+    exit 1
+fi
 
 # Создание файла службы systemd
 {
@@ -35,11 +47,23 @@ $SUDO chmod +x "$AUTOSTART_SCRIPT"
     echo "WantedBy=multi-user.target"
 } | $SUDO tee "$SERVICE_FILE" > /dev/null
 
+# Проверка успешности создания файла службы
+if [ $? -ne 0 ]; then
+    echo "Ошибка: не удалось создать файл службы $SERVICE_FILE."
+    exit 1
+fi
+
 # Активировать службу
-$SUDO systemctl enable autostart.service
+if ! $SUDO systemctl enable autostart.service; then
+    echo "Ошибка: не удалось активировать службу autostart.service."
+    exit 1
+fi
 
 # Запустить службу (по желанию)
-$SUDO systemctl start autostart.service
+if ! $SUDO systemctl start autostart.service; then
+    echo "Ошибка: не удалось запустить службу autostart.service."
+    exit 1
+fi
 
 # Вывод расположения скрипта
 echo "Скрипт autostart.sh расположен по адресу: $AUTOSTART_SCRIPT"
