@@ -7,11 +7,14 @@ SUDO=$(command -v sudo || echo "")
 AUTOSTART_SCRIPT="/usr/local/mootcomb/autostart.sh"  # Путь к вашему скрипту autostart.sh
 SERVICE_FILE="/etc/systemd/system/autostart.service"  # Файл службы systemd
 
+# Создание директории, если она не существует
+$SUDO mkdir -p /usr/local/mootcomb
+
 # Создание скрипта autostart.sh
 {
     echo "#!/bin/sh"
     echo "# Системный демон (systemd) находится в /lib/systemd/system/"
-    echo "echo 'Скрипт autostart.sh выполнен!"
+    echo "echo 'Скрипт autostart.sh выполнен!'"
     echo "exit 0"
 } | $SUDO tee "$AUTOSTART_SCRIPT" > /dev/null
 
