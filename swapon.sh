@@ -6,8 +6,10 @@ trap 'echo -e "Вы прервали выполнение скрипта."; exit
 # Проверка наличия sudo
 SUDO=$(command -v sudo || echo "")
 
-# Файл для хранения настроек ZRAM
-ZRAM_CONFIG="/etc/mootcomb/zram_config.conf"
+# Переменные для путей
+ZRAM_CONFIG="/etc/mootcomb/zram_config.conf"  # Файл для хранения настроек ZRAM
+ZRAM_SETUP_SCRIPT="/usr/local/mootcomb/zram_setup.sh"  # Временный скрипт для настройки ZRAM
+SYSTEMD_SERVICE="/etc/systemd/system/zram_setup.service"  # Файл службы systemd
 
 # Функция для установки dialog
 install_dialog() {
@@ -66,10 +68,10 @@ if [ -f "$ZRAM_CONFIG" ]; then
         fi
         
         # Удаление systemd сервиса, если он существует
-        if [ -f /etc/systemd/system/zram_setup.service ]; then
+        if [ -f "$SYSTEMD_SERVICE" ]; then
             $SUDO systemctl stop zram_setup.service
             $SUDO systemctl disable zram_setup.service
-            $SUDO rm -f /etc/systemd/system/zram_setup.service
+            $SUDO rm -f "$SYSTEMD_SERVICE"
             $SUDO systemctl daemon-reload
             echo "ZRAM удален из автозапуска."
         fi
@@ -122,13 +124,13 @@ if [ $RUN_SCRIPT -eq 0 ]; then
         echo -e "ZRAM_SIZE=$ZRAM_SIZE\nADD_TO_AUTOSTART=$ADD_TO_AUTOSTART" | $SUDO tee $ZRAM_CONFIG > /dev/null
         
         # Создание systemd сервиса
-        echo -e "[Unit]\nDescription=ZRAM Setup\n\n[Service]\nType=oneshot\nExecStart=/usr/local/mootcomb/zram_setup.sh\nRemainAfterExit=yes\n\n[Install]\nWantedBy=multi-user.target" | $SUDO tee /etc/systemd/system/zram_setup.service > /dev/null
+        echo -e "[Unit]\nDescription=ZRAM Setup\n\n[Service]\nType=oneshot\nExecStart=$ZRAM_SETUP_SCRIPT\nRemainAfterExit=yes\n\n[Install]\nWantedBy=multi-user.target" | $SUDO tee "$SYSTEMD_SERVICE" > /dev/null
         
         # Создание временного скрипта для настройки ZRAM
-        echo -e "#!/bin/bash\n\n# Загрузка модуля zram\nmodprobe zram\n\n# Чтение размера zram из конфигурационного файла\nZRAM_SIZE=\$(grep ZRAM_SIZE /etc/mootcomb/zram_config.conf | cut -d'=' -f2)\necho \$ZRAM_SIZE > /sys/block/zram0/disksize\n\n# Создание swap на zram\nmkswap /dev/zram0\nswapon /dev/zram0" | $SUDO tee /usr/local/mootcomb/zram_setup.sh > /dev/null
+        echo -e "#!/bin/bash\n\n# Загрузка модуля zram\nmodprobe zram\n\n# Чтение размера zram из конфигурационного файла\nZRAM_SIZE=\$(grep ZRAM_SIZE $ZRAM_CONFIG | cut -d'=' -f2)\necho \$ZRAM_SIZE > /sys/block/zram0/disksize\n\n# Создание swap на zram\nmkswap /dev/zram0\nswapon /dev/zram0" | $SUDO tee "$ZRAM_SETUP_SCRIPT" > /dev/null
         
         # Установка прав на выполнение для скрипта
-        $SUDO chmod +x /usr/local/mootcomb/zram_setup.sh
+        $SUDO chmod +x "$ZRAM_SETUP_SCRIPT"
         
         # Включение сервиса
         $SUDO systemctl enable zram_setup.service
