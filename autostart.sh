@@ -96,29 +96,25 @@ if ! $SUDO systemctl start "$SERVICE_NAME"; then
 fi
 
 # Запрос на открытие скрипта
-while true; do
-    read -p "Хотите открыть $AUTOSTART_SCRIPT для редактирования? (y/n): " OPEN_SCRIPT
-    if [[ "$OPEN_SCRIPT" == "y" || "$OPEN_SCRIPT" == "Y" ]]; then
-        # Запрос на выбор редактора
-        while true; do
-            read -p "Выберите редактор (nano/vim): " EDITOR
-            if [[ "$EDITOR" == "nano" ]]; then
-                $SUDO nano "$AUTOSTART_SCRIPT"
-                break
-            elif [[ "$EDITOR" == "vim" ]]; then
-                $SUDO vim "$AUTOSTART_SCRIPT"
-                break
-            else
-                echo "Неверный выбор редактора. Пожалуйста, выберите nano или vim."
-            fi
-        done
-        break
-   # elif [[ "$OPEN_SCRIPT" == "n" || "$OPEN_SCRIPT" == "N" ]]; then
-   #     break
-   # else
-   #     echo "Неверный ответ. Пожалуйста, введите 'y' или 'n'."
-    fi
-done
+read -p "Хотите открыть $AUTOSTART_SCRIPT для редактирования? (y/n): " OPEN_SCRIPT
+if [[ "$OPEN_SCRIPT" == "y" || "$OPEN_SCRIPT" == "Y" ]]; then
+    # Запрос на выбор редактора
+    while true; do
+        read -p "Выберите редактор (nano/vim): " EDITOR
+        if [[ "$EDITOR" == "nano" ]]; then
+            $SUDO nano "$AUTOSTART_SCRIPT"
+            break
+        elif [[ "$EDITOR" == "vim" ]]; then
+            $SUDO vim "$AUTOSTART_SCRIPT"
+            break
+        else
+            echo "Неверный выбор редактора. Пожалуйста, выберите nano или vim."
+        fi
+    done
+#else
+#    echo "Редактирование скрипта отменено."
+#    exit 0
+fi
 
 # Вывод расположения скрипта после завершения всех операций
 echo "     "
