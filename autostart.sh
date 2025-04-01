@@ -113,10 +113,10 @@ while true; do
             fi
         done
         break
-    elif [[ "$OPEN_SCRIPT" == "n" || "$OPEN_SCRIPT" == "N" ]]; then
-        break
-    else
-        echo "Неверный ответ. Пожалуйста, введите 'y' или 'n'."
+   # elif [[ "$OPEN_SCRIPT" == "n" || "$OPEN_SCRIPT" == "N" ]]; then
+   #     break
+   # else
+   #     echo "Неверный ответ. Пожалуйста, введите 'y' или 'n'."
     fi
 done
 
