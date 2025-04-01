@@ -6,6 +6,34 @@ SUDO=$(command -v sudo || echo "")
 # Переменные для путей
 AUTOSTART_SCRIPT="/usr/local/mootcomb/autostart.sh"  # Путь к вашему скрипту autostart.sh
 SERVICE_FILE="/etc/systemd/system/autostart.service"  # Файл службы systemd
+SERVICE_NAME="autostart.service"  # Имя службы
+
+# Проверка существования systemd daemon
+if systemctl list-units --full --all | grep -q "$SERVICE_NAME"; then
+    echo "Служба $SERVICE_NAME уже существует."
+    read -p "Хотите удалить авто запуск $SERVICE_NAME? (y/n): " REMOVE_SERVICE
+
+    if [[ "$REMOVE_SERVICE" == "y" || "$REMOVE_SERVICE" == "Y" ]]; then
+        # Остановка и отключение службы
+        $SUDO systemctl stop "$SERVICE_NAME"
+        $SUDO systemctl disable "$SERVICE_NAME"
+
+        # Удаление файла службы
+        if $SUDO rm "$SERVICE_FILE"; then
+            echo "Служба $SERVICE_NAME успешно удалена."
+        else
+            echo "Ошибка: не удалось удалить службу $SERVICE_NAME."
+        fi
+
+        # Обновление systemd
+        $SUDO systemctl daemon-reload
+    else
+        echo "Авто запуск $SERVICE_NAME не был удален."
+        exit 0
+    fi
+else
+    echo "Служба $SERVICE_NAME не найдена."
+fi
 
 # Создание директории, если она не существует
 if ! $SUDO mkdir -p /usr/local/mootcomb; then
@@ -54,14 +82,14 @@ if [ $? -ne 0 ]; then
 fi
 
 # Активировать службу
-if ! $SUDO systemctl enable autostart.service; then
-    echo "Ошибка: не удалось активировать службу autostart.service."
+if ! $SUDO systemctl enable "$SERVICE_NAME"; then
+    echo "Ошибка: не удалось активировать службу $SERVICE_NAME."
     exit 1
 fi
 
 # Запустить службу (по желанию)
-if ! $SUDO systemctl start autostart.service; then
-    echo "Ошибка: не удалось запустить службу autostart.service."
+if ! $SUDO systemctl start "$SERVICE_NAME"; then
+    echo "Ошибка: не удалось запустить службу $SERVICE_NAME."
     exit 1
 fi
 
