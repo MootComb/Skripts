@@ -70,7 +70,7 @@ fi
 # Создание скрипта autostart.sh
 {
     echo "#!/bin/sh"
-    echo "# Системный демон (systemd) находится в /lib/systemd/system/"
+    echo "# Системный демон (systemd) находится в $SERVICE_FILE"
     echo "echo 'Скрипт autostart.sh выполнен!'"
     echo "exit 0"
 } | $SUDO tee "$AUTOSTART_SCRIPT" > /dev/null
