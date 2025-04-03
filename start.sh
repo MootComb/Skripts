@@ -53,11 +53,15 @@ show_menu() {
         [ $? -ne 0 ] && echo "Выбор отменен." && exit 0
 
         if [ "$SELECTED_ITEM" == "back" ]; then
-            [ ${#DIR_STACK[@]} -gt 0 ] && CURRENT_DIR="${DIR_STACK[-1]}" && DIR_STACK=("${DIR_STACK[@]:0:${#DIR_STACK[@]}-1}") && cd "$CURRENT_DIR" || continue
+            if [ ${#DIR_STACK[@]} -gt 0 ]; then
+                cd "${DIR_STACK[-1]}" || exit 1  # Переход в предыдущую директорию
+                CURRENT_DIR="${DIR_STACK[-1]}"  # Обновляем текущую директорию
+                DIR_STACK=("${DIR_STACK[@]:0:${#DIR_STACK[@]}-1}")  # Удаляем последнюю директорию из стека
+            fi
         elif [ -d "$SELECTED_ITEM" ]; then
-            DIR_STACK+=("$CURRENT_DIR")
+            DIR_STACK+=("$CURRENT_DIR")  # Сохраняем текущую директорию перед переходом
             CURRENT_DIR="$SELECTED_ITEM"
-            cd "$CURRENT_DIR" || continue
+            cd "$CURRENT_DIR" || exit 1
         else
             [ -f "$SELECTED_ITEM" ] && chmod +x "$SELECTED_ITEM" && ./"$SELECTED_ITEM"
         fi
