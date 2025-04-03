@@ -53,6 +53,7 @@ show_menu() {
         fi
 
         if [ ${#CHOICES[@]} -eq 0 ]; then
+            echo "Нет доступных скриптов или директорий."
             exit 0
         fi
 
@@ -65,10 +66,9 @@ show_menu() {
 
         if [ "$SELECTED_ITEM" == "back" ]; then
             if [ ${#DIR_STACK[@]} -gt 0 ]; then
-                DIR_STACK=("${DIR_STACK[@]:0:${#DIR_STACK[@]}-1}")
-                CURRENT_DIR="${DIR_STACK[-1]}"
+                CURRENT_DIR="${DIR_STACK[-1]}"  # Получаем последнюю директорию из стека
+                DIR_STACK=("${DIR_STACK[@]:0:${#DIR_STACK[@]}-1}")  # Удаляем последнюю директорию из стека
                 cd "$CURRENT_DIR" || continue
-                exit 0
             fi
             continue
         elif [ -d "$SELECTED_ITEM" ]; then
