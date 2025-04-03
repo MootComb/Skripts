@@ -1,12 +1,15 @@
 #!/bin/bash
 
+# Устанавливаем переменную SUDO для использования в командах
+SUDO=$(command -v sudo)
+
 # Функция для проверки и установки пакетов
 install_dependencies() {
     echo "Необходимые пакеты не найдены. Установить их? (y/n)"
     read -r answer
     if [[ "$answer" == "y" || "$answer" == "Y" ]]; then
-        sudo apt-get update
-        sudo apt-get install dialog git
+        $SUDO apt-get update
+        $SUDO apt-get install dialog git
     else
         echo "Зависимости не установлены. Завершение работы."
         exit 1
