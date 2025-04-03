@@ -5,15 +5,9 @@ SUDO=$(command -v sudo)
 
 # Функция для проверки и установки пакетов
 install_dependencies() {
-    echo "Необходимые пакеты не найдены. Установить их? (y/n)"
-    read -r answer
-    if [[ "$answer" == "y" || "$answer" == "Y" ]]; then
-        $SUDO apt-get update
-        $SUDO apt-get install dialog git
-    else
-        echo "Зависимости не установлены. Завершение работы."
-        exit 1
-    fi
+    echo "Необходимые пакеты не найдены. Устанавливаю их..."
+    $SUDO apt-get update
+    $SUDO apt-get install -y dialog git  # Добавлен флаг -y для автоматического подтверждения
 }
 
 # Проверяем наличие необходимых пакетов
