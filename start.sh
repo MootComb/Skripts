@@ -51,8 +51,10 @@ show_menu() {
             CHOICES+=("$SCRIPT" "$SCRIPT")
         done
 
-        # Добавляем кнопку "Назад"
-        CHOICES+=("back" "Назад")
+        # Добавляем кнопку "Назад", если есть поддиректории
+        if [ ${#DIRECTORIES[@]} -gt 0 ]; then
+            CHOICES+=("back" "Назад")
+        fi
 
         # Используем dialog для выбора файла или директории
         SELECTED_ITEM=$(dialog --title "Выберите скрипт или директорию" --menu "Выберите один из следующих элементов:" 15 50 10 "${CHOICES[@]}" 3>&1 1>&2 2>&3)
@@ -74,6 +76,7 @@ show_menu() {
             # Выполняем выбранный скрипт
             chmod +x "$SELECTED_ITEM"
             ./"$SELECTED_ITEM"
+            exit 0  # Завершаем скрипт после выполнения
         fi
     done
 }
