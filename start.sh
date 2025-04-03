@@ -19,9 +19,7 @@ fi
 REPO_URL="https://github.com/MootComb/Skripts.git"
 CLONE_DIR="/tmp/MootComb"
 
-if [ -d "$CLONE_DIR" ]; then
-    rm -rf "$CLONE_DIR"
-fi
+[ -d "$CLONE_DIR" ] && rm -rf "$CLONE_DIR"
 
 git clone "$REPO_URL" "$CLONE_DIR" || exit 1
 cd "$CLONE_DIR" || exit 1
@@ -34,23 +32,16 @@ show_menu() {
         SCRIPTS=(*.sh)
         DIRECTORIES=(*)
         CHOICES=()
-        current_dir=$(pwd)
 
         for DIR in "${DIRECTORIES[@]}"; do
-            if [ -d "$DIR" ]; then
-                CHOICES+=("$DIR" "$DIR")
-            fi
+            [ -d "$DIR" ] && CHOICES+=("$DIR" "$DIR")
         done
 
-        if [ ${#SCRIPTS[@]} -gt 0 ]; then
-            for SCRIPT in "${SCRIPTS[@]}"; do
-                CHOICES+=("$SCRIPT" "$SCRIPT")
-            done
-        fi
+        [ ${#SCRIPTS[@]} -gt 0 ] && for SCRIPT in "${SCRIPTS[@]}"; do
+            CHOICES+=("$SCRIPT" "$SCRIPT")
+        done
 
-        if [ "$CURRENT_DIR" != "$CLONE_DIR" ]; then
-            CHOICES+=("back" "Назад")
-        fi
+        [ "$CURRENT_DIR" != "$CLONE_DIR" ] && CHOICES+=("back" "Назад")
 
         if [ ${#CHOICES[@]} -eq 0 ]; then
             echo "Нет доступных скриптов или директорий."
@@ -59,27 +50,16 @@ show_menu() {
 
         SELECTED_ITEM=$(dialog --title "Выберите" --menu "Выберите элемент:" 15 50 10 "${CHOICES[@]}" 3>&1 1>&2 2>&3)
 
-        if [ $? -ne 0 ]; then
-            echo "Выбор отменен."
-            exit 0  # Завершаем скрипт при отмене
-        fi
+        [ $? -ne 0 ] && echo "Выбор отменен." && exit 0
 
         if [ "$SELECTED_ITEM" == "back" ]; then
-            if [ ${#DIR_STACK[@]} -gt 0 ]; then
-                CURRENT_DIR="${DIR_STACK[-1]}"  # Получаем последнюю директорию из стека
-                DIR_STACK=("${DIR_STACK[@]:0:${#DIR_STACK[@]}-1}")  # Удаляем последнюю директорию из стека
-                cd "$CURRENT_DIR" || continue
-            fi
-            continue
+            [ ${#DIR_STACK[@]} -gt 0 ] && CURRENT_DIR="${DIR_STACK[-1]}" && DIR_STACK=("${DIR_STACK[@]:0:${#DIR_STACK[@]}-1}") && cd "$CURRENT_DIR" || continue
         elif [ -d "$SELECTED_ITEM" ]; then
-            DIR_STACK+=("$CURRENT_DIR")  # Сохраняем текущую директорию перед переходом
+            DIR_STACK+=("$CURRENT_DIR")
             CURRENT_DIR="$SELECTED_ITEM"
             cd "$CURRENT_DIR" || continue
         else
-            if [ -f "$SELECTED_ITEM" ]; then
-                chmod +x "$SELECTED_ITEM"
-                ./"$SELECTED_ITEM"
-            fi
+            [ -f "$SELECTED_ITEM" ] && chmod +x "$SELECTED_ITEM" && ./"$SELECTED_ITEM"
         fi
     done
 }
