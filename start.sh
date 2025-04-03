@@ -77,12 +77,13 @@ show_menu() {
             CURRENT_DIR="$CURRENT_DIR/$SELECTED_ITEM"  # Обновляем текущую директорию с учетом вложенности
             cd "$CURRENT_DIR" || exit 1
         else
-            [ -f "$SELECTED_ITEM" ] && chmod +x "$SELECTED_ITEM" && ./"$SELECTED_ITEM"
+            if [ -f "$SELECTED_ITEM" ]; then
+                chmod +x "$SELECTED_ITEM"
+                ./"$SELECTED_ITEM"  # Выполняем выбранный скрипт
+                exit 0  # Завершаем текущий скрипт после выполнения
+            fi
         fi
     done
 }
 
-while true; do
-    show_menu
-    cd "$CLONE_DIR" || exit 1
-done
+show_menu
