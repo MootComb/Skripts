@@ -1,128 +1,89 @@
 #!/bin/bash
 
-# Устанавливаем переменную SUDO для использования в командах
 SUDO=$(command -v sudo)
 
-# Функция для проверки и установки пакетов
 install_dependencies() {
-    echo "Необходимые пакеты не найдены. Устанавливаю их..."
     $SUDO apt-get update
     $SUDO apt-get install -y dialog git
 }
 
-# Проверяем наличие необходимых пакетов
 if ! command -v dialog &> /dev/null || ! command -v git &> /dev/null; then
-    echo "Необходимые пакеты не найдены."
-    read -p "Хотите установить их? (y/n): " choice
+    read -p "Установить необходимые пакеты? (y/n): " choice
     if [[ "$choice" == [Yy] ]]; then
         install_dependencies
     else
-        echo "Установка зависимостей отменена. Скрипт завершает работу."
         exit 1
     fi
 fi
 
-# Клонируем репозиторий
 REPO_URL="https://github.com/MootComb/Skripts.git"
 CLONE_DIR="/tmp/MootComb"
 
-# Очищаем временную директорию, если она существует
 if [ -d "$CLONE_DIR" ]; then
-    echo "Очищаем временную директорию..."
     rm -rf "$CLONE_DIR"
 fi
 
-# Клонируем репозиторий
-echo "Клонируем репозиторий..."
-git clone "$REPO_URL" "$CLONE_DIR"
+git clone "$REPO_URL" "$CLONE_DIR" || exit 1
+cd "$CLONE_DIR" || exit 1
 
-# Переходим в директорию с скриптами
-cd "$CLONE_DIR" || exit
-
-# Стек для хранения предыдущих директорий
 DIR_STACK=()
 CURRENT_DIR="$CLONE_DIR"
 
-# Функция для отображения меню
 show_menu() {
     while true; do
-        # Находим все .sh файлы и директории
         SCRIPTS=(*.sh)
         DIRECTORIES=(*)
-
-        # Создаем список для dialog
         CHOICES=()
         current_dir=$(pwd)
 
-        # Добавляем поддиректории
         for DIR in "${DIRECTORIES[@]}"; do
             if [ -d "$DIR" ]; then
                 CHOICES+=("$DIR" "$DIR")
             fi
         done
 
-        # Добавляем скрипты, если они существуют
         if [ ${#SCRIPTS[@]} -gt 0 ]; then
             for SCRIPT in "${SCRIPTS[@]}"; do
                 CHOICES+=("$SCRIPT" "$SCRIPT")
             done
         fi
 
-        # Добавляем кнопку "Назад", если мы не в корневой директории
         if [ "$current_dir" != "$CLONE_DIR" ]; then
             CHOICES+=("back" "Назад")
         fi
 
-        # Проверяем, есть ли элементы для выбора
         if [ ${#CHOICES[@]} -eq 0 ]; then
-            echo "Нет доступных скриптов или директорий."
             exit 0
         fi
 
-        # Используем dialog для выбора файла или директории
-        SELECTED_ITEM=$(dialog --title "Выберите скрипт или директорию" --menu "Выберите один из следующих элементов:" 15 50 10 "${CHOICES[@]}" 3>&1 1>&2 2>&3)
+        SELECTED_ITEM=$(dialog --title "Выберите" --menu "Выберите элемент:" 15 50 10 "${CHOICES[@]}" 3>&1 1>&2 2>&3)
 
-        # Проверяем, был ли выбран элемент
         if [ $? -ne 0 ]; then
-            echo "Выбор отменен."
-            continue  # Возвращаемся в меню
+            continue
         fi
 
-        # Обрабатываем выбор
         if [ "$SELECTED_ITEM" == "back" ]; then
-            # Возвращаемся в предыдущую директорию
             if [ ${#DIR_STACK[@]} -gt 0 ]; then
-                CURRENT_DIR="${DIR_STACK[-1]}"  # Получаем последнюю директорию из стека
-                DIR_STACK=("${DIR_STACK[@]:0:${#DIR_STACK[@]}-1}")  # Удаляем последнюю директорию из стека
+                CURRENT_DIR="${DIR_STACK[-1]}"
+                DIR_STACK=("${DIR_STACK[@]:0:${#DIR_STACK[@]}-1}")
                 cd "$CURRENT_DIR" || exit
-                echo "Вы находитесь в директории: $CURRENT_DIR"
-            else
-                echo "Вы находитесь в корневой директории. Невозможно вернуться назад."
             fi
-            continue  # Возвращаемся в меню
+            continue
         elif [ -d "$SELECTED_ITEM" ]; then
-            # Если выбрана директория, сохраняем текущую в стек и переходим в новую
-            DIR_STACK+=("$CURRENT_DIR")  # Сохраняем текущую директорию в стек
+            DIR_STACK+=("$CURRENT_DIR")
             CURRENT_DIR="$SELECTED_ITEM"
-            cd .. || exit
-            echo "Вы находитесь в директории: $CURRENT_DIR"
+            cd "$CURRENT_DIR" || exit
         else
-            # Проверяем, существует ли выбранный скрипт
             if [ -f "$SELECTED_ITEM" ]; then
-                # Выполняем выбранный скрипт
                 chmod +x "$SELECTED_ITEM"
                 ./"$SELECTED_ITEM"
-                exit 0  # Завершаем скрипт после выполнения
-            else
-                echo "Ошибка: выбранный элемент не является файлом."
+                exit 0
             fi
         fi
     done
 }
 
-# Запускаем меню
 while true; do
     show_menu
-    # После выхода из show_menu, возвращаемся в родительскую директорию
-    cd "$CLONE_DIR" || exit
+    cd "$CLONE_DIR" || exit 1
 done
