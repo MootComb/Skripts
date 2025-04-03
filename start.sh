@@ -75,7 +75,6 @@ show_menu() {
             PREVIOUS_DIR="$CURRENT_DIR"  # Сохраняем текущую директорию перед переходом
             CURRENT_DIR="$SELECTED_ITEM"
             cd "$CURRENT_DIR" || continue
-            exit 0  # Завершаем скрипт при отмене
         else
             if [ -f "$SELECTED_ITEM" ]; then
                 chmod +x "$SELECTED_ITEM"
