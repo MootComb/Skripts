@@ -2,7 +2,7 @@
 
 # Проверяем, установлены ли необходимые утилиты
 if ! command -v qm &> /dev/null; then
-    echo "Утилита qm не найдена! Убедитесь, что Proxmox установлен."
+    echo "Утилита qm не найдена! Убедитесь, что Proxmox VE установлен."
     exit 1
 fi
 
@@ -11,8 +11,8 @@ if ! command -v dialog &> /dev/null; then
     exit 1
 fi
 
-# Получаем список всех виртуальных машин в Proxmox
-vms=$(qm list | awk 'NR>1 {print $1}')
+# Получаем список всех виртуальных машин в Proxmox VE с их именами
+vms=$(qm list | awk 'NR>1 {print $1, $2}')
 
 # Проверяем, есть ли виртуальные машины
 if [ -z "$vms" ]; then
@@ -20,16 +20,11 @@ if [ -z "$vms" ]; then
     exit 1
 fi
 
-# Создаем массив виртуальных машин
-IFS=$'\n' read -r -d '' -a vm_array <<< "$vms"
-
 # Создаем список для dialog
 options=()
-for vm_id in "${vm_array[@]}"; do
-    # Получаем имя виртуальной машины
-    vm_name=$(qm config "$vm_id" | grep "^name:" | awk '{print $2}')
+while read -r vm_id vm_name; do
     options+=("$vm_id" "$vm_name")
-done
+done <<< "$vms"
 
 # Выводим список виртуальных машин с помощью dialog
 selected_vm_id=$(dialog --title "Выберите виртуальную машину" --menu "Выберите виртуальную машину для редактирования:" 15 50 10 "${options[@]}" 3>&1 1>&2 2>&3)
