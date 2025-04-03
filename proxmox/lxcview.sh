@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # Проверяем, установлены ли необходимые утилиты
-if ! command -v lxc &> /dev/null; then
-    echo "Утилита lxc не найдена. Убедитесь, что LXC установлен."
+if ! command -v pct &> /dev/null; then
+    echo "Утилита pct не найдена. Убедитесь, что Proxmox установлен."
     exit 1
 fi
 
@@ -11,8 +11,8 @@ if ! command -v dialog &> /dev/null; then
     exit 1
 fi
 
-# Получаем список всех контейнеров LXC
-containers=$(lxc list | awk 'NR>2 {print $2}')
+# Получаем список всех контейнеров LXC в Proxmox
+containers=$(pct list | awk 'NR>1 {print $1}')
 
 # Проверяем, есть ли контейнеры
 if [ -z "$containers" ]; then
@@ -40,7 +40,7 @@ if [ $exit_status != 0 ]; then
 fi
 
 # Открываем конфигурационный файл выбранного контейнера в nano
-config_file="/var/lib/lxc/$selected_container/config"
+config_file="/etc/pve/lxc/$selected_container.conf"
 if [ -f "$config_file" ]; then
     nano "$config_file"
 else
