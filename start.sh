@@ -12,7 +12,14 @@ install_dependencies() {
 
 # Проверяем наличие необходимых пакетов
 if ! command -v dialog &> /dev/null || ! command -v git &> /dev/null; then
-    install_dependencies
+    echo "Необходимые пакеты не найдены."
+    read -p "Хотите установить их? (y/n): " choice
+    if [[ "$choice" == [Yy] ]]; then
+        install_dependencies
+    else
+        echo "Установка зависимостей отменена. Скрипт завершает работу."
+        exit 1
+    fi
 fi
 
 # Клонируем репозиторий
@@ -58,14 +65,22 @@ show_menu() {
             fi
         done
 
-        # Добавляем скрипты
-        for SCRIPT in "${SCRIPTS[@]}"; do
-            CHOICES+=("$SCRIPT" "$SCRIPT")
-        done
+        # Добавляем скрипты, если они существуют
+        if [ ${#SCRIPTS[@]} -gt 0 ]; then
+            for SCRIPT in "${SCRIPTS[@]}"; do
+                CHOICES+=("$SCRIPT" "$SCRIPT")
+            done
+        fi
 
         # Добавляем кнопку "Назад", если мы не в корневой директории
         if [ "$current_dir" != "$CLONE_DIR" ]; then
             CHOICES+=("back" "Назад")
+        fi
+
+        # Проверяем, есть ли элементы для выбора
+        if [ ${#CHOICES[@]} -eq 0 ]; then
+            echo "Нет доступных скриптов или директорий."
+            exit 0
         fi
 
         # Используем dialog для выбора файла или директории
@@ -85,10 +100,15 @@ show_menu() {
             cd "$SELECTED_ITEM" || exit
             echo "Вы находитесь в директории: $SELECTED_ITEM"
         else
-            # Выполняем выбранный скрипт
-            chmod +x "$SELECTED_ITEM"
-            ./"$SELECTED_ITEM"
-            exit 0  # Завершаем скрипт после выполнения
+            # Проверяем, существует ли выбранный скрипт
+            if [ -f "$SELECTED_ITEM" ]; then
+                # Выполняем выбранный скрипт
+                chmod +x "$SELECTED_ITEM"
+                ./"$SELECTED_ITEM"
+                exit 0  # Завершаем скрипт после выполнения
+            else
+                echo "Ошибка: выбранный элемент не является файлом."
+            fi
         fi
     done
 }
