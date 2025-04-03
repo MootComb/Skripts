@@ -1,5 +1,11 @@
 #!/bin/bash
 
+# Copyright (c) 2025 MootComb
+# Author: MootComb
+# License: Apache License 2.0
+# https://github.com/MootComb/Skripts/blob/main/LICENSE
+# Source: https://github.com/MootComb/Skripts
+
 # Обработка комбинации клавиш (Ctrl+C)
 trap 'echo -e "Вы прервали выполнение скрипта."; exit 0' SIGINT
 
