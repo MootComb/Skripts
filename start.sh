@@ -43,21 +43,28 @@ show_menu() {
         CHOICES=()
         current_dir=$(pwd)
 
+        # Добавляем поддиректории, если мы не в /tmp/MootComb
         for DIR in "${DIRECTORIES[@]}"; do
             if [ -d "$DIR" ]; then
                 # Проверяем, не находимся ли мы в /tmp/MootComb
                 if [ "$current_dir" != "$CLONE_DIR" ]; then
                     CHOICES+=("$DIR" "$DIR")
+                elif [ "$current_dir" == "$CLONE_DIR" ]; then
+                    # Если мы в /tmp/MootComb, добавляем только поддиректории
+                    if [ "$DIR" != "$CLONE_DIR" ]; then
+                        CHOICES+=("$DIR" "$DIR")
+                    fi
                 fi
             fi
         done
 
+        # Добавляем скрипты
         for SCRIPT in "${SCRIPTS[@]}"; do
             CHOICES+=("$SCRIPT" "$SCRIPT")
         done
 
-        # Добавляем кнопку "Назад", если есть поддиректории
-        if [ ${#DIRECTORIES[@]} -gt 0 ]; then
+        # Добавляем кнопку "Назад", если мы не в корневой директории
+        if [ "$current_dir" != "$CLONE_DIR" ]; then
             CHOICES+=("back" "Назад")
         fi
 
