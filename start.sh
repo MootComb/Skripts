@@ -60,7 +60,7 @@ show_menu() {
             fi
         elif [ -d "$SELECTED_ITEM" ]; then
             DIR_STACK+=("$CURRENT_DIR")  # Сохраняем текущую директорию перед переходом
-            CURRENT_DIR="$SELECTED_ITEM"
+            CURRENT_DIR="$CURRENT_DIR/$SELECTED_ITEM"  # Обновляем текущую директорию с учетом вложенности
             cd "$CURRENT_DIR" || exit 1
         else
             [ -f "$SELECTED_ITEM" ] && chmod +x "$SELECTED_ITEM" && ./"$SELECTED_ITEM"
