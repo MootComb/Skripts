@@ -29,18 +29,32 @@ CURRENT_DIR="$CLONE_DIR"
 
 show_menu() {
     while true; do
-        SCRIPTS=(*.sh)
-        DIRECTORIES=(*)
+        SCRIPTS=()
+        DIRECTORIES=()
         CHOICES=()
 
+        # Собираем .sh файлы, если они есть
+        for FILE in *; do
+            if [ -f "$FILE" ] && [[ "$FILE" == *.sh ]]; then
+                SCRIPTS+=("$FILE")
+            elif [ -d "$FILE" ]; then
+                DIRECTORIES+=("$FILE")
+            fi
+        done
+
+        # Добавляем директории в меню
         for DIR in "${DIRECTORIES[@]}"; do
-            [ -d "$DIR" ] && CHOICES+=("$DIR" "$DIR")
+            CHOICES+=("$DIR" "$DIR")
         done
 
-        [ ${#SCRIPTS[@]} -gt 0 ] && for SCRIPT in "${SCRIPTS[@]}"; do
-            CHOICES+=("$SCRIPT" "$SCRIPT")
-        done
+        # Добавляем .sh файлы в меню, если они есть
+        if [ ${#SCRIPTS[@]} -gt 0 ]; then
+            for SCRIPT in "${SCRIPTS[@]}"; do
+                CHOICES+=("$SCRIPT" "$SCRIPT")
+            done
+        fi
 
+        # Добавляем кнопку "Назад", если это не корневая директория
         [ "$CURRENT_DIR" != "$CLONE_DIR" ] && CHOICES+=("back" "Назад")
 
         if [ ${#CHOICES[@]} -eq 0 ]; then
