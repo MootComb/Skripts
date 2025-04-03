@@ -79,7 +79,6 @@ show_menu() {
             if [ -f "$SELECTED_ITEM" ]; then
                 chmod +x "$SELECTED_ITEM"
                 ./"$SELECTED_ITEM"
-                exit 0
             fi
         fi
     done
