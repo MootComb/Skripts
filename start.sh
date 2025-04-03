@@ -55,7 +55,7 @@ show_menu() {
         fi
 
         # Добавляем кнопку "Назад", если это не корневая директория
-        [ "$CURRENT_DIR" != "$CLONE_DIR" ] && CHOICES+=("back" "Назад")
+        [ "$CURRENT_DIR" != "$CLONE_DIR" ] && CHOICES+=("back" "option")
 
         if [ ${#CHOICES[@]} -eq 0 ]; then
             echo "Нет доступных скриптов или директорий."
