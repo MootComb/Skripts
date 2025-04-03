@@ -11,8 +11,8 @@ if ! command -v dialog &> /dev/null; then
     exit 1
 fi
 
-# Получаем список всех контейнеров LXC в Proxmox
-containers=$(pct list | awk 'NR>1 {print $1}')
+# Получаем список всех контейнеров LXC в Proxmox с их именами
+containers=$(pct list | awk 'NR>1 {print $1, $3}')
 
 # Проверяем, есть ли контейнеры
 if [ -z "$containers" ]; then
@@ -20,16 +20,11 @@ if [ -z "$containers" ]; then
     exit 1
 fi
 
-# Создаем массив контейнеров
-IFS=$'\n' read -r -d '' -a container_array <<< "$containers"
-
 # Создаем список для dialog
 options=()
-for container_id in "${container_array[@]}"; do
-    # Получаем имя контейнера
-    container_name=$(pct config "$container_id" | grep "^hostname:" | awk '{print $2}')
+while read -r container_id container_name; do
     options+=("$container_id" "$container_name")
-done
+done <<< "$containers"
 
 # Выводим список контейнеров с помощью dialog
 selected_container_id=$(dialog --title "Выберите LXC контейнер" --menu "Выберите контейнер для редактирования:" 15 50 10 "${options[@]}" 3>&1 1>&2 2>&3)
