@@ -28,12 +28,10 @@ CLONE_DIR="/tmp/MootComb"
 
 # Очищаем временную директорию, если она существует
 if [ -d "$CLONE_DIR" ]; then
-    echo "Очищаем временную директорию..."
     rm -rf "$CLONE_DIR"
 fi
 
 # Клонируем репозиторий
-echo "Клонируем репозиторий..."
 git clone "$REPO_URL" "$CLONE_DIR"
 
 # Переходим в директорию с скриптами
@@ -50,18 +48,10 @@ show_menu() {
         CHOICES=()
         current_dir=$(pwd)
 
-        # Добавляем поддиректории, если мы не в /tmp/MootComb
+        # Добавляем поддиректории
         for DIR in "${DIRECTORIES[@]}"; do
             if [ -d "$DIR" ]; then
-                # Проверяем, не находимся ли мы в /tmp/MootComb
-                if [ "$current_dir" != "$CLONE_DIR" ]; then
-                    CHOICES+=("$DIR" "$DIR")
-                elif [ "$current_dir" == "$CLONE_DIR" ]; then
-                    # Если мы в /tmp/MootComb, добавляем только поддиректории
-                    if [ "$DIR" != "$CLONE_DIR" ]; then
-                        CHOICES+=("$DIR" "$DIR")
-                    fi
-                fi
+                CHOICES+=("$DIR" "$DIR")
             fi
         done
 
@@ -84,7 +74,7 @@ show_menu() {
         fi
 
         # Используем dialog для выбора файла или директории
-        SELECTED_ITEM=$(dialog --title "Выберите скрипт или директорию v1.2" --menu "Выберите один из следующих элементов:" 15 50 10 "${CHOICES[@]}" --center 3>&1 1>&2 2>&3)
+        SELECTED_ITEM=$(dialog --title "Выберите скрипт или директорию v1.0" --menu "Выберите один из следующих элементов:" 15 50 10 "${CHOICES[@]}" --center 3>&1 1>&2 2>&3)
 
         # Проверяем, был ли выбран элемент
         if [ $? -ne 0 ]; then
@@ -98,7 +88,6 @@ show_menu() {
         elif [ -d "$SELECTED_ITEM" ]; then
             # Если выбрана директория, переходим в нее
             cd "$SELECTED_ITEM" || exit
-            echo "Вы находитесь в директории: $SELECTED_ITEM"
         else
             # Проверяем, существует ли выбранный скрипт
             if [ -f "$SELECTED_ITEM" ]; then
