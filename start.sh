@@ -68,12 +68,14 @@ show_menu() {
                 CURRENT_DIR="$PREVIOUS_DIR"
                 cd "$CURRENT_DIR" || continue
                 PREVIOUS_DIR=""  # Сбрасываем предыдущую директорию после перехода
+                exit 0
             fi
             continue
         elif [ -d "$SELECTED_ITEM" ]; then
             PREVIOUS_DIR="$CURRENT_DIR"  # Сохраняем текущую директорию перед переходом
             CURRENT_DIR="$SELECTED_ITEM"
             cd "$CURRENT_DIR" || continue
+            exit 0  # Завершаем скрипт при отмене
         else
             if [ -f "$SELECTED_ITEM" ]; then
                 chmod +x "$SELECTED_ITEM"
