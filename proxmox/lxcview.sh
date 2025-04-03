@@ -1,7 +1,18 @@
 #!/bin/bash
 
+# Проверяем, установлены ли необходимые утилиты
+if ! command -v lxc &> /dev/null; then
+    echo "Утилита lxc не найдена. Убедитесь, что LXC установлен."
+    exit 1
+fi
+
+if ! command -v dialog &> /dev/null; then
+    echo "Утилита dialog не найдена. Убедитесь, что dialog установлен."
+    exit 1
+fi
+
 # Получаем список всех контейнеров LXC
-containers=$(lxc list -c n --format csv)
+containers=$(lxc list | awk 'NR>2 {print $2}')
 
 # Проверяем, есть ли контейнеры
 if [ -z "$containers" ]; then
