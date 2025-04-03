@@ -41,9 +41,14 @@ show_menu() {
 
         # Создаем список для dialog
         CHOICES=()
+        current_dir=$(pwd)
+
         for DIR in "${DIRECTORIES[@]}"; do
             if [ -d "$DIR" ]; then
-                CHOICES+=("$DIR" "$DIR")
+                # Проверяем, не находимся ли мы в /tmp/MootComb
+                if [ "$current_dir" != "$CLONE_DIR" ]; then
+                    CHOICES+=("$DIR" "$DIR")
+                fi
             fi
         done
 
