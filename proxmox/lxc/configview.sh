@@ -2,12 +2,12 @@
 
 # Проверяем, установлены ли необходимые утилиты
 if ! command -v pct &> /dev/null; then
-    echo "Утилита pct не найдена. Убедитесь, что Proxmox установлен."
+    echo "Утилита pct не найдена! Убедитесь, что Proxmox установлен."
     exit 1
 fi
 
 if ! command -v dialog &> /dev/null; then
-    echo "Утилита dialog не найдена. Убедитесь, что dialog установлен."
+    echo "Утилита dialog не найдена! Убедитесь, что dialog установлен."
     exit 1
 fi
 
@@ -16,7 +16,7 @@ containers=$(pct list | awk 'NR>1 {print $1}')
 
 # Проверяем, есть ли контейнеры
 if [ -z "$containers" ]; then
-    dialog --msgbox "Нет доступных контейнеров LXC." 5 40
+    dialog --msgbox "Нет доступных LXC контейнеров!" 5 40
     exit 1
 fi
 
@@ -46,5 +46,5 @@ config_file="/etc/pve/lxc/$selected_container_id.conf"
 if [ -f "$config_file" ]; then
     nano "$config_file"
 else
-    dialog --msgbox "Конфигурационный файл не найден." 5 40
+    dialog --msgbox "Конфигурационный файл не найден!" 5 40
 fi
