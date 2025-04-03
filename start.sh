@@ -26,8 +26,8 @@ fi
 git clone "$REPO_URL" "$CLONE_DIR" || exit 1
 cd "$CLONE_DIR" || exit 1
 
+DIR_STACK=()
 CURRENT_DIR="$CLONE_DIR"
-PREVIOUS_DIR=""
 
 show_menu() {
     while true; do
@@ -64,15 +64,14 @@ show_menu() {
         fi
 
         if [ "$SELECTED_ITEM" == "back" ]; then
-            if [ -n "$PREVIOUS_DIR" ]; then
-                CURRENT_DIR="$PREVIOUS_DIR"
+            if [ ${#DIR_STACK[@]} -gt 0 ]; then
+                CURRENT_DIR="${DIR_STACK[-1]}"
+                DIR_STACK=("${DIR_STACK[@]:0:${#DIR_STACK[@]}-1}")
                 cd "$CURRENT_DIR" || continue
-                PREVIOUS_DIR=""  # Сбрасываем предыдущую директорию после перехода
-                exit 0
             fi
             continue
         elif [ -d "$SELECTED_ITEM" ]; then
-            PREVIOUS_DIR="$CURRENT_DIR"  # Сохраняем текущую директорию перед переходом
+            DIR_STACK+=("$CURRENT_DIR")  # Сохраняем текущую директорию перед переходом
             CURRENT_DIR="$SELECTED_ITEM"
             cd "$CURRENT_DIR" || continue
         else
