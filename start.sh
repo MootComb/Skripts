@@ -65,7 +65,6 @@ show_menu() {
 
         # Обрабатываем выбор
         if [ "$SELECTED_ITEM" == "back" ]; then
-            echo "Возврат в главное меню..."
             return  # Возврат в предыдущее меню
         elif [ -d "$SELECTED_ITEM" ]; then
             # Если выбрана директория, переходим в нее
@@ -82,4 +81,6 @@ show_menu() {
 # Запускаем меню
 while true; do
     show_menu
+    # После выхода из show_menu, возвращаемся в родительскую директорию
+    cd "$CLONE_DIR" || exit
 done
