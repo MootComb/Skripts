@@ -26,8 +26,8 @@ fi
 git clone "$REPO_URL" "$CLONE_DIR" || exit 1
 cd "$CLONE_DIR" || exit 1
 
-DIR_STACK=()
 CURRENT_DIR="$CLONE_DIR"
+PREVIOUS_DIR=""
 
 show_menu() {
     while true; do
@@ -48,7 +48,7 @@ show_menu() {
             done
         fi
 
-        if [ "$current_dir" != "$CLONE_DIR" ]; then
+        if [ "$CURRENT_DIR" != "$CLONE_DIR" ]; then
             CHOICES+=("back" "Назад")
         fi
 
@@ -58,21 +58,20 @@ show_menu() {
 
         SELECTED_ITEM=$(dialog --title "Выберите" --menu "Выберите элемент:" 15 50 10 "${CHOICES[@]}" 3>&1 1>&2 2>&3)
 
-        # Проверяем, была ли нажата кнопка "Cancel" или закрыт диалог
         if [ $? -ne 0 ]; then
             echo "Выбор отменен."
             exit 0  # Завершаем скрипт при отмене
         fi
 
         if [ "$SELECTED_ITEM" == "back" ]; then
-            if [ ${#DIR_STACK[@]} -gt 0 ]; then
-                CURRENT_DIR="${DIR_STACK[-1]}"
-                DIR_STACK=("${DIR_STACK[@]:0:${#DIR_STACK[@]}-1}")
+            if [ -n "$PREVIOUS_DIR" ]; then
+                CURRENT_DIR="$PREVIOUS_DIR"
                 cd "$CURRENT_DIR" || continue
+                PREVIOUS_DIR=""  # Сбрасываем предыдущую директорию после перехода
             fi
             continue
         elif [ -d "$SELECTED_ITEM" ]; then
-            DIR_STACK+=("$CURRENT_DIR")
+            PREVIOUS_DIR="$CURRENT_DIR"  # Сохраняем текущую директорию перед переходом
             CURRENT_DIR="$SELECTED_ITEM"
             cd "$CURRENT_DIR" || continue
         else
