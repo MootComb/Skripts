@@ -66,13 +66,13 @@ show_menu() {
             if [ ${#DIR_STACK[@]} -gt 0 ]; then
                 CURRENT_DIR="${DIR_STACK[-1]}"
                 DIR_STACK=("${DIR_STACK[@]:0:${#DIR_STACK[@]}-1}")
-                cd "$CURRENT_DIR" || exit
+                cd "$CURRENT_DIR" || continue
             fi
             continue
         elif [ -d "$SELECTED_ITEM" ]; then
             DIR_STACK+=("$CURRENT_DIR")
             CURRENT_DIR="$SELECTED_ITEM"
-            cd "$CURRENT_DIR" || exit
+            cd "$CURRENT_DIR" || continue
         else
             if [ -f "$SELECTED_ITEM" ]; then
                 chmod +x "$SELECTED_ITEM"
