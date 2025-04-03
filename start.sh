@@ -66,7 +66,7 @@ show_menu() {
         # Обрабатываем выбор
         if [ "$SELECTED_ITEM" == "back" ]; then
             echo "Возврат в главное меню..."
-            break
+            return  # Возврат в предыдущее меню
         elif [ -d "$SELECTED_ITEM" ]; then
             # Если выбрана директория, переходим в нее
             cd "$SELECTED_ITEM" || exit
@@ -80,4 +80,6 @@ show_menu() {
 }
 
 # Запускаем меню
-show_menu
+while true; do
+    show_menu
+done
