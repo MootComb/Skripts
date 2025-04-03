@@ -1,7 +1,22 @@
 #!/bin/bash
 
-# Установите необходимые пакеты, если они еще не установлены
-# sudo apt-get install dialog git
+# Функция для проверки и установки пакетов
+install_dependencies() {
+    echo "Необходимые пакеты не найдены. Установить их? (y/n)"
+    read -r answer
+    if [[ "$answer" == "y" || "$answer" == "Y" ]]; then
+        sudo apt-get update
+        sudo apt-get install dialog git
+    else
+        echo "Зависимости не установлены. Завершение работы."
+        exit 1
+    fi
+}
+
+# Проверяем наличие необходимых пакетов
+if ! command -v dialog &> /dev/null || ! command -v git &> /dev/null; then
+    install_dependencies
+fi
 
 # Клонируем репозиторий
 REPO_URL="https://github.com/MootComb/Skripts.git"
@@ -10,7 +25,7 @@ CLONE_DIR="/tmp/MootComb"
 # Очищаем временную директорию, если она существует
 if [ -d "$CLONE_DIR" ]; then
     echo "Очищаем временную директорию..."
-    rm -rf /tmp/MootComb
+    rm -rf "$CLONE_DIR"
 fi
 
 # Клонируем репозиторий
