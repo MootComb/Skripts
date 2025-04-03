@@ -39,6 +39,10 @@ git clone "$REPO_URL" "$CLONE_DIR"
 # Переходим в директорию с скриптами
 cd "$CLONE_DIR" || exit
 
+# Стек для хранения предыдущих директорий
+DIR_STACK=()
+CURRENT_DIR="$CLONE_DIR"
+
 # Функция для отображения меню
 show_menu() {
     while true; do
@@ -86,11 +90,22 @@ show_menu() {
 
         # Обрабатываем выбор
         if [ "$SELECTED_ITEM" == "back" ]; then
-            return  # Возврат в предыдущее меню
+            # Возвращаемся в предыдущую директорию
+            if [ ${#DIR_STACK[@]} -gt 0 ]; then
+                CURRENT_DIR="${DIR_STACK[-1]}"  # Получаем последнюю директорию из стека
+                DIR_STACK=("${DIR_STACK[@]:0:${#DIR_STACK[@]}-1}")  # Удаляем последнюю директорию из стека
+                cd "$CURRENT_DIR" || exit
+                echo "Вы находитесь в директории: $CURRENT_DIR"
+            else
+                echo "Вы находитесь в корневой директории. Невозможно вернуться назад."
+            fi
+            continue  # Возвращаемся в меню
         elif [ -d "$SELECTED_ITEM" ]; then
-            # Если выбрана директория, переходим в нее
-            cd "$SELECTED_ITEM" || exit
-            echo "Вы находитесь в директории: $SELECTED_ITEM"
+            # Если выбрана директория, сохраняем текущую в стек и переходим в новую
+            DIR_STACK+=("$CURRENT_DIR")  # Сохраняем текущую директорию в стек
+            CURRENT_DIR="$SELECTED_ITEM"
+            cd "$CURRENT_DIR" || exit
+            echo "Вы находитесь в директории: $CURRENT_DIR"
         else
             # Проверяем, существует ли выбранный скрипт
             if [ -f "$SELECTED_ITEM" ]; then
