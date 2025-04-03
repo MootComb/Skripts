@@ -50,18 +50,10 @@ show_menu() {
         CHOICES=()
         current_dir=$(pwd)
 
-        # Добавляем поддиректории, если мы не в /tmp/MootComb
+        # Добавляем поддиректории
         for DIR in "${DIRECTORIES[@]}"; do
             if [ -d "$DIR" ]; then
-                # Проверяем, не находимся ли мы в /tmp/MootComb
-                if [ "$current_dir" != "$CLONE_DIR" ]; then
-                    CHOICES+=("$DIR" "$DIR")
-                elif [ "$current_dir" == "$CLONE_DIR" ]; then
-                    # Если мы в /tmp/MootComb, добавляем только поддиректории
-                    if [ "$DIR" != "$CLONE_DIR" ]; then
-                        CHOICES+=("$DIR" "$DIR")
-                    fi
-                fi
+                CHOICES+=("$DIR" "$DIR")
             fi
         done
 
@@ -89,7 +81,7 @@ show_menu() {
         # Проверяем, был ли выбран элемент
         if [ $? -ne 0 ]; then
             echo "Выбор отменен."
-            exit 0
+            continue  # Возвращаемся в меню
         fi
 
         # Обрабатываем выбор
