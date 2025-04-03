@@ -44,13 +44,13 @@ show_menu() {
 
         # Добавляем директории в меню
         for DIR in "${DIRECTORIES[@]}"; do
-            CHOICES+=("$DIR" "$DIR")
+            CHOICES+=("$DIR" "directory")  # Добавляем тип "directory"
         done
 
         # Добавляем .sh файлы в меню, если они есть
         if [ ${#SCRIPTS[@]} -gt 0 ]; then
             for SCRIPT in "${SCRIPTS[@]}"; do
-                CHOICES+=("$SCRIPT" "$SCRIPT")
+                CHOICES+=("$SCRIPT" "script")  # Добавляем тип "script"
             done
         fi
 
