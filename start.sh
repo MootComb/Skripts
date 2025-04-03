@@ -7,7 +7,7 @@ SUDO=$(command -v sudo)
 install_dependencies() {
     echo "Необходимые пакеты не найдены. Устанавливаю их..."
     $SUDO apt-get update
-    $SUDO apt-get install -y dialog git  # Добавлен флаг -y для автоматического подтверждения
+    $SUDO apt-get install -y dialog git
 }
 
 # Проверяем наличие необходимых пакетов
@@ -32,30 +32,52 @@ git clone "$REPO_URL" "$CLONE_DIR"
 # Переходим в директорию с скриптами
 cd "$CLONE_DIR" || exit
 
-# Находим все .sh файлы
-SCRIPTS=(*.sh)
+# Функция для отображения меню
+show_menu() {
+    while true; do
+        # Находим все .sh файлы и директории
+        SCRIPTS=(*.sh)
+        DIRECTORIES=(*)
 
-# Проверяем, есть ли .sh файлы
-if [ ${#SCRIPTS[@]} -eq 0 ]; then
-    echo "Нет доступных .sh файлов для выполнения."
-    exit 1
-fi
+        # Создаем список для dialog
+        CHOICES=()
+        for DIR in "${DIRECTORIES[@]}"; do
+            if [ -d "$DIR" ]; then
+                CHOICES+=("$DIR" "$DIR")
+            fi
+        done
 
-# Создаем список для dialog
-CHOICES=()
-for SCRIPT in "${SCRIPTS[@]}"; do
-    CHOICES+=("$SCRIPT" "$SCRIPT")
-done
+        for SCRIPT in "${SCRIPTS[@]}"; do
+            CHOICES+=("$SCRIPT" "$SCRIPT")
+        done
 
-# Используем dialog для выбора файла
-SELECTED_SCRIPT=$(dialog --title "Выберите скрипт для выполнения" --menu "Выберите один из следующих скриптов:" 15 50 10 "${CHOICES[@]}" 3>&1 1>&2 2>&3)
+        # Добавляем кнопку "Назад"
+        CHOICES+=("back" "Назад")
 
-# Проверяем, был ли выбран скрипт
-if [ $? -ne 0 ]; then
-    echo "Выбор отменен."
-    exit 0
-fi
+        # Используем dialog для выбора файла или директории
+        SELECTED_ITEM=$(dialog --title "Выберите скрипт или директорию" --menu "Выберите один из следующих элементов:" 15 50 10 "${CHOICES[@]}" 3>&1 1>&2 2>&3)
 
-# Выполняем выбранный скрипт
-chmod +x "$SELECTED_SCRIPT"
-./"$SELECTED_SCRIPT"
+        # Проверяем, был ли выбран элемент
+        if [ $? -ne 0 ]; then
+            echo "Выбор отменен."
+            exit 0
+        fi
+
+        # Обрабатываем выбор
+        if [ "$SELECTED_ITEM" == "back" ]; then
+            echo "Возврат в главное меню..."
+            break
+        elif [ -d "$SELECTED_ITEM" ]; then
+            # Если выбрана директория, переходим в нее
+            cd "$SELECTED_ITEM" || exit
+            echo "Вы находитесь в директории: $SELECTED_ITEM"
+        else
+            # Выполняем выбранный скрипт
+            chmod +x "$SELECTED_ITEM"
+            ./"$SELECTED_ITEM"
+        fi
+    done
+}
+
+# Запускаем меню
+show_menu
