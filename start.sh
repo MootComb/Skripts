@@ -27,6 +27,9 @@ cd "$CLONE_DIR" || exit 1
 DIR_STACK=()
 CURRENT_DIR="$CLONE_DIR"
 
+# Массив исключений
+EXCLUDE_FILES=("start.sh" "*.tmp")
+
 show_menu() {
     while true; do
         SCRIPTS=()
@@ -35,6 +38,11 @@ show_menu() {
 
         # Собираем .sh файлы, если они есть
         for FILE in *; do
+            # Проверяем, есть ли файл в массиве исключений
+            if [[ " ${EXCLUDE_FILES[@]} " =~ " $FILE " ]]; then
+                continue  # Пропускаем файл, если он в исключениях
+            fi
+
             if [ -f "$FILE" ] && [[ "$FILE" == *.sh ]]; then
                 SCRIPTS+=("$FILE")
             elif [ -d "$FILE" ]; then
