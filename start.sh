@@ -36,6 +36,24 @@ CURRENT_DIR="$CLONE_DIR"
 # Массив исключений
 EXCLUDE_FILES=("start.sh" "*.tmp")
 
+check_language() {
+    if [ -f "/etc/mootcomb/choose.conf" ]; then
+        lang=$(grep -E '^lang:' /etc/mootcomb/choose.conf | cut -d' ' -f2)
+        if [ -z "$lang" ]; then
+            return 1  # Язык не установлен
+        fi
+    else
+        return 1  # Файл не существует
+    fi
+    return 0  # Язык установлен
+}
+
+# Проверяем установлен ли язык
+if ! check_language; then
+    dialog --msgbox "Язык не установлен. Выполняется скрипт для выбора языка." 10 50
+    /tmp/MootComb/choose.sh  # Выполняем скрипт для выбора языка
+fi
+
 show_menu() {
     while true; do
         SCRIPTS=()
@@ -101,4 +119,4 @@ show_menu() {
     done
 }
 
-show_menu
+show_menu  # Вызываем функцию для отображения меню
