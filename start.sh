@@ -13,32 +13,19 @@ install_dependencies() {
     $SUDO apt-get install -y dialog git
 }
 
-if ! command -v dialog &> /dev/null || ! command -v git &> /dev/null; then
-    read -p "$MSG_INSTALL_PROMPT" choice
-    if [[ "$choice" == [Yy] ]]; then
-        install_dependencies
-    else
-        exit 1
-    fi
-fi
-
-REPO_URL="https://github.com/MootComb/Skripts.git"
-CLONE_DIR="/tmp/MootComb"
-
-[ -d "$CLONE_DIR" ] && rm -rf "$CLONE_DIR"
-
-git clone "$REPO_URL" "$CLONE_DIR" || exit 1
-cd "$CLONE_DIR" || exit 1
-
-DIR_STACK=()
-CURRENT_DIR="$CLONE_DIR"
-
 # Проверка наличия конфигурационного файла
 CONFIG_FILE="/etc/MootComb/choose.conf"
 if [ ! -f "$CONFIG_FILE" ]; then
-    chmod +x /tmp/MootComb/choose.sh
-    /tmp/MootComb/choose.sh
-    exit 0
+    echo "Конфигурационный файл не найден. Выполняем choose.sh."
+    CHOOSE_SCRIPT="/tmp/MootComb/choose.sh"
+    if [ -f "$CHOOSE_SCRIPT" ]; then
+        chmod +x "$CHOOSE_SCRIPT"
+        "$CHOOSE_SCRIPT"
+        exit 0
+    else
+        echo "Ошибка: Скрипт choose.sh не найден в $CHOOSE_SCRIPT."
+        exit 1
+    fi
 fi
 
 # Извлечение языка из конфигурационного файла
@@ -60,6 +47,30 @@ else
     MSG_SELECT="Select an item:"
     MSG_TITLE="Select"
 fi
+
+# Проверка и установка зависимостей
+if ! command -v dialog &> /dev/null || ! command -v git &> /dev/null; then
+    read -p "$MSG_INSTALL_PROMPT" choice
+    if [[ "$choice" == [Yy] ]]; then
+        install_dependencies
+    else
+        exit 1
+    fi
+fi
+
+# Клонирование репозитория
+REPO_URL="https://github.com/MootComb/Skripts.git"
+CLONE_DIR="/tmp/MootComb"
+
+if [ -d "$CLONE_DIR" ]; then
+    rm -rf "$CLONE_DIR"
+fi
+
+git clone "$REPO_URL" "$CLONE_DIR" || { echo "Ошибка: Не удалось клонировать репозиторий."; exit 1; }
+cd "$CLONE_DIR" || { echo "Ошибка: Не удалось перейти в директорию $CLONE_DIR."; exit 1; }
+
+DIR_STACK=()
+CURRENT_DIR="$CLONE_DIR"
 
 # Массив исключений
 EXCLUDE_FILES=("start.sh" "*.tmp")
@@ -104,20 +115,26 @@ show_menu() {
             exit 0
         fi
 
+        # Отображение меню с помощью dialog
         SELECTED_ITEM=$(dialog --title "$MSG_TITLE" --menu "$MSG_SELECT" 15 50 10 "${CHOICES[@]}" 3>&1 1>&2 2>&3)
 
-        [ $? -ne 0 ] && echo "$MSG_CANCELLED" && exit 0
+        # Проверка, была ли отмена выбора
+        if [ $? -ne 0 ]; then
+            echo "$MSG_CANCELLED"
+            exit 0
+        fi
 
+        # Обработка выбора пользователя
         if [ "$SELECTED_ITEM" == "$MSG_BACK" ]; then
             if [ ${#DIR_STACK[@]} -gt 0 ]; then
-                cd "${DIR_STACK[-1]}" || exit
+                cd "${DIR_STACK[-1]}" || { echo "Ошибка: Не удалось перейти в директорию ${DIR_STACK[-1]}."; exit 1; }
                 CURRENT_DIR="${DIR_STACK[-1]}"  # Обновляем текущую директорию
                 DIR_STACK=("${DIR_STACK[@]:0:${#DIR_STACK[@]}-1}")  # Удаляем последнюю директорию из стека
             fi
         elif [ -d "$SELECTED_ITEM" ]; then
             DIR_STACK+=("$CURRENT_DIR")  # Сохраняем текущую директорию перед переходом
             CURRENT_DIR="$CURRENT_DIR/$SELECTED_ITEM"  # Обновляем текущую директорию с учетом вложенности
-            cd "$CURRENT_DIR" || exit 1
+            cd "$CURRENT_DIR" || { echo "Ошибка: Не удалось перейти в директорию $CURRENT_DIR."; exit 1; }
         else
             if [ -f "$SELECTED_ITEM" ]; then
                 chmod +x "$SELECTED_ITEM"
@@ -128,4 +145,5 @@ show_menu() {
     done
 }
 
+# Запуск меню
 show_menu
