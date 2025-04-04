@@ -40,4 +40,4 @@ esac
 echo "lang: $lang" | sudo tee /etc/MootComb/choose.conf > /dev/null
 
 # Сообщаем пользователю о результате
-dialog --msgbox "Выбранный язык: $lang\nЯзык записан в /etc/mootcomb/choose.conf" 10 50
+# dialog --msgbox "Выбранный язык: $lang\nЯзык записан в /etc/mootcomb/choose.conf" 10 50
