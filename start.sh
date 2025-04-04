@@ -117,6 +117,13 @@ show_menu() {
             exit 0
         fi
 
+        # Обновляем MSG_TITLE с текущей директорией
+        if [[ "$LANGUAGE" == "Русский" ]]; then
+            MSG_TITLE="Текущая директория: $CURRENT_DIR"
+        else
+            MSG_TITLE="Current directory: $CURRENT_DIR"
+        fi
+
         # Отображение меню с помощью dialog
         SELECTED_ITEM=$(dialog --title "$MSG_TITLE" --menu "$MSG_SELECT" 15 50 10 "${CHOICES[@]}" 3>&1 1>&2 2>&3)
 
