@@ -36,16 +36,16 @@ if [[ "$LANGUAGE" == "Русский" ]]; then
     MSG_INSTALL_PROMPT="Установить необходимые пакеты? (y/n): "
     MSG_NO_SCRIPTS="Нет доступных скриптов или директорий."
     MSG_CANCELLED="Выбор отменен."
-    MSG_BACK="Назад"
-    MSG_SELECT="Выберите элемент:"
-    MSG_TITLE="Выберите"
+    MSG_BACK="back"
+    MSG_SELECT="Выберите опцию:"
+    MSG_TITLE="$CURRENT_DIR"
 else
     MSG_INSTALL_PROMPT="Install necessary packages? (y/n): "
     MSG_NO_SCRIPTS="No available scripts or directories."
     MSG_CANCELLED="Selection cancelled."
-    MSG_BACK="Back"
-    MSG_SELECT="Select an item:"
-    MSG_TITLE="Select"
+    MSG_BACK="back"
+    MSG_SELECT="Select an option:"
+    MSG_TITLE="$CURRENT_DIR"
 fi
 
 # Проверка и установка зависимостей
