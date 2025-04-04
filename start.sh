@@ -76,7 +76,8 @@ show_menu() {
             exit 0
         fi
 
-        SELECTED_ITEM=$(dialog --title "Выберите" --menu "Выберите элемент:" 15 50 10 "${CHOICES[@]}" 3>&1 1>&2 2>&3)
+        # Отображаем текущий путь в заголовке
+        SELECTED_ITEM=$(dialog --title "Выберите в '$CURRENT_DIR'" --menu "Выберите элемент:" 15 50 10 "${CHOICES[@]}" 3>&1 1>&2 2>&3)
 
         [ $? -ne 0 ] && echo "Выбор отменен." && exit 0
 
