@@ -13,7 +13,7 @@ trap 'echo -e "Вы прервали выполнение скрипта."; exit
 SUDO=$(command -v sudo || echo "")
 
 # Переменные для путей
-ZRAM_CONFIG="/etc/mootcomb/zram_config.conf"  # Файл для хранения настроек ZRAM
+ZRAM_CONFIG="/etc/MootComb/zram_config.conf"  # Файл для хранения настроек ZRAM
 ZRAM_SETUP_SCRIPT="/usr/local/MootComb/zram_setup.sh"  # Временный скрипт для настройки ZRAM
 SYSTEMD_SERVICE="/etc/systemd/system/zram_setup.service"  # Файл службы systemd
 
