@@ -21,26 +21,6 @@ if [ ! -f "$CONFIG_FILE" ]; then
     exit 0
 fi
 
-# Извлечение языка из конфигурационного файла
-LANGUAGE=$(grep -E '^lang:' "$CONFIG_FILE" | cut -d':' -f2 | xargs)
-
-# Установка сообщений в зависимости от языка
-if [[ "$LANGUAGE" == "Русский" ]]; then
-    MSG_INSTALL_PROMPT="Установить необходимые пакеты? (y/n): "
-    MSG_NO_SCRIPTS="Нет доступных скриптов или директорий."
-    MSG_CANCELLED="Выбор отменен."
-    MSG_BACK="Назад"
-    MSG_SELECT="Выберите элемент:"
-    MSG_TITLE="Выберите"
-else
-    MSG_INSTALL_PROMPT="Install necessary packages? (y/n): "
-    MSG_NO_SCRIPTS="No available scripts or directories."
-    MSG_CANCELLED="Selection cancelled."
-    MSG_BACK="Back"
-    MSG_SELECT="Select an item:"
-    MSG_TITLE="Select"
-fi
-
 if ! command -v dialog &> /dev/null || ! command -v git &> /dev/null; then
     read -p "$MSG_INSTALL_PROMPT" choice
     if [[ "$choice" == [Yy] ]]; then
@@ -60,6 +40,26 @@ cd "$CLONE_DIR" || exit 1
 
 DIR_STACK=()
 CURRENT_DIR="$CLONE_DIR"
+
+# Извлечение языка из конфигурационного файла
+LANGUAGE=$(grep -E '^lang:' "$CONFIG_FILE" | cut -d':' -f2 | xargs)
+
+# Установка сообщений в зависимости от языка
+if [[ "$LANGUAGE" == "Русский" ]]; then
+    MSG_INSTALL_PROMPT="Установить необходимые пакеты? (y/n): "
+    MSG_NO_SCRIPTS="Нет доступных скриптов или директорий."
+    MSG_CANCELLED="Выбор отменен."
+    MSG_BACK="Назад"
+    MSG_SELECT="Выберите элемент:"
+    MSG_TITLE="Выберите"
+else
+    MSG_INSTALL_PROMPT="Install necessary packages? (y/n): "
+    MSG_NO_SCRIPTS="No available scripts or directories."
+    MSG_CANCELLED="Selection cancelled."
+    MSG_BACK="Back"
+    MSG_SELECT="Select an item:"
+    MSG_TITLE="Select"
+fi
 
 # Массив исключений
 EXCLUDE_FILES=("start.sh" "*.tmp")
