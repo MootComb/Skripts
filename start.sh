@@ -33,6 +33,14 @@ cd "$CLONE_DIR" || exit 1
 DIR_STACK=()
 CURRENT_DIR="$CLONE_DIR"
 
+# Проверка наличия конфигурационного файла
+CONFIG_FILE="/etc/MootComb/choose.conf"
+if [ ! -f "$CONFIG_FILE" ]; then
+    chmod +x /tmp/MootComb/choose.sh
+    /tmp/MootComb/choose.sh
+    exit 0
+fi
+
 # Извлечение языка из конфигурационного файла
 LANGUAGE=$(grep -E '^lang:' "$CONFIG_FILE" | cut -d':' -f2 | xargs)
 
@@ -51,14 +59,6 @@ else
     MSG_BACK="Back"
     MSG_SELECT="Select an item:"
     MSG_TITLE="Select"
-fi
-
-# Проверка наличия конфигурационного файла
-CONFIG_FILE="/etc/mootcomb/choose.conf"
-if [ ! -f "$CONFIG_FILE" ]; then
-    chmod +x /tmp/MootComb/choose.sh
-    /tmp/MootComb/choose.sh
-    exit 0
 fi
 
 # Массив исключений
