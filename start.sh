@@ -21,7 +21,7 @@ if [ ! -f "$CONFIG_FILE" ]; then
     if [ -f "$CHOOSE_SCRIPT" ]; then
         chmod +x "$CHOOSE_SCRIPT"
         "$CHOOSE_SCRIPT"
-        exit 0
+        # Продолжаем выполнение скрипта после choose.sh
     else
         echo "Ошибка: Скрипт choose.sh не найден в $CHOOSE_SCRIPT."
         exit 1
