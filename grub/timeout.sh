@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Определяем, доступна ли команда sudo
+SUDO=$(command -v sudo)
+
 # Функция для проверки, является ли введенное значение числом
 is_number() {
     if [[ $1 =~ ^[0-9]+$ ]]; then
@@ -30,10 +33,10 @@ while true; do
 done
 
 # Изменяем значение GRUB_TIMEOUT в файле /etc/default/grub
-sudo sed -i "s/GRUB_TIMEOUT=.*/GRUB_TIMEOUT=$delay/" /etc/default/grub
+$SUDO sed -i "s/GRUB_TIMEOUT=.*/GRUB_TIMEOUT=$delay/" /etc/default/grub
 
 # Обновляем конфигурацию GRUB
-sudo update-grub
+$SUDO update-grub
 
 # Выводим сообщение об успешном завершении
 dialog --msgbox "Задержка перед запуском установлена на $delay секунд. Конфигурация GRUB обновлена." 8 50
