@@ -28,7 +28,7 @@ case $LANGUAGE in
         lang="English"
         ;;
     2)
-        lang="Russian"
+        lang="Русский"
         ;;
     *)
         echo "Неверный выбор."
