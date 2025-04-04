@@ -21,7 +21,6 @@ if [ ! -f "$CONFIG_FILE" ]; then
     if [ -f "$CHOOSE_SCRIPT" ]; then
         chmod +x "$CHOOSE_SCRIPT"
         "$CHOOSE_SCRIPT"
-        # Продолжаем выполнение скрипта после choose.sh
     else
         echo "Ошибка: Скрипт choose.sh не найден в $CHOOSE_SCRIPT."
         exit 1
@@ -36,16 +35,20 @@ if [[ "$LANGUAGE" == "Русский" ]]; then
     MSG_INSTALL_PROMPT="Установить необходимые пакеты? (y/n): "
     MSG_NO_SCRIPTS="Нет доступных скриптов или директорий."
     MSG_CANCELLED="Выбор отменен."
-    MSG_BACK="back"
+    MSG_BACK="Назад"
     MSG_SELECT="Выберите опцию:"
-    MSG_TITLE="$CURRENT_DIR"
+    MSG_CLONE_ERROR="Ошибка: Не удалось клонировать репозиторий."
+    MSG_CD_ERROR="Ошибка: Не удалось перейти в директорию."
+    MSG_TITLE="Текущая директория: $CURRENT_DIR"
 else
     MSG_INSTALL_PROMPT="Install necessary packages? (y/n): "
     MSG_NO_SCRIPTS="No available scripts or directories."
     MSG_CANCELLED="Selection cancelled."
-    MSG_BACK="back"
+    MSG_BACK="Back"
     MSG_SELECT="Select an option:"
-    MSG_TITLE="$CURRENT_DIR"
+    MSG_CLONE_ERROR="Error: Failed to clone the repository."
+    MSG_CD_ERROR="Error: Failed to change directory."
+    MSG_TITLE="Current directory: $CURRENT_DIR"
 fi
 
 # Проверка и установка зависимостей
@@ -66,8 +69,8 @@ if [ -d "$CLONE_DIR" ]; then
     rm -rf "$CLONE_DIR"
 fi
 
-git clone "$REPO_URL" "$CLONE_DIR" || { echo "Ошибка: Не удалось клонировать репозиторий."; exit 1; }
-cd "$CLONE_DIR" || { echo "Ошибка: Не удалось перейти в директорию $CLONE_DIR."; exit 1; }
+git clone "$REPO_URL" "$CLONE_DIR" || { echo "$MSG_CLONE_ERROR"; exit 1; }
+cd "$CLONE_DIR" || { echo "$MSG_CD_ERROR $CLONE_DIR."; exit 1; }
 
 DIR_STACK=()
 CURRENT_DIR="$CLONE_DIR"
@@ -83,9 +86,8 @@ show_menu() {
 
         # Собираем .sh файлы, если они есть
         for FILE in *; do
-            # Проверяем, есть ли файл в массиве исключений
             if [[ " ${EXCLUDE_FILES[@]} " =~ " $FILE " ]]; then
-                continue  # Пропускаем файл, если он в исключениях
+                continue
             fi
 
             if [ -f "$FILE" ] && [[ "$FILE" == *.sh ]]; then
@@ -97,13 +99,13 @@ show_menu() {
 
         # Добавляем директории в меню
         for DIR in "${DIRECTORIES[@]}"; do
-            CHOICES+=("$DIR" "directory")  # Добавляем тип "directory"
+            CHOICES+=("$DIR" "directory")
         done
 
         # Добавляем .sh файлы в меню, если они есть
         if [ ${#SCRIPTS[@]} -gt 0 ]; then
             for SCRIPT in "${SCRIPTS[@]}"; do
-                CHOICES+=("$SCRIPT" "script")  # Добавляем тип "script"
+                CHOICES+=("$SCRIPT" "script")
             done
         fi
 
@@ -127,19 +129,19 @@ show_menu() {
         # Обработка выбора пользователя
         if [ "$SELECTED_ITEM" == "$MSG_BACK" ]; then
             if [ ${#DIR_STACK[@]} -gt 0 ]; then
-                cd "${DIR_STACK[-1]}" || { echo "Ошибка: Не удалось перейти в директорию ${DIR_STACK[-1]}."; exit 1; }
-                CURRENT_DIR="${DIR_STACK[-1]}"  # Обновляем текущую директорию
-                DIR_STACK=("${DIR_STACK[@]:0:${#DIR_STACK[@]}-1}")  # Удаляем последнюю директорию из стека
+                cd "${DIR_STACK[-1]}" || { echo "$MSG_CD_ERROR ${DIR_STACK[-1]}."; exit 1; }
+                CURRENT_DIR="${DIR_STACK[-1]}"
+                DIR_STACK=("${DIR_STACK[@]:0:${#DIR_STACK[@]}-1}")
             fi
         elif [ -d "$SELECTED_ITEM" ]; then
-            DIR_STACK+=("$CURRENT_DIR")  # Сохраняем текущую директорию перед переходом
-            CURRENT_DIR="$CURRENT_DIR/$SELECTED_ITEM"  # Обновляем текущую директорию с учетом вложенности
-            cd "$CURRENT_DIR" || { echo "Ошибка: Не удалось перейти в директорию $CURRENT_DIR."; exit 1; }
+            DIR_STACK+=("$CURRENT_DIR")
+            CURRENT_DIR="$CURRENT_DIR/$SELECTED_ITEM"
+            cd "$CURRENT_DIR" || { echo "$MSG_CD_ERROR $CURRENT_DIR."; exit 1; }
         else
             if [ -f "$SELECTED_ITEM" ]; then
                 chmod +x "$SELECTED_ITEM"
-                ./"$SELECTED_ITEM"  # Выполняем выбранный скрипт
-                exit 0  # Завершаем текущий скрипт после выполнения
+                ./"$SELECTED_ITEM"
+                exit 0
             fi
         fi
     done
