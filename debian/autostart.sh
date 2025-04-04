@@ -10,7 +10,7 @@
 SUDO=$(command -v sudo || echo "")
 
 # Переменные для путей
-AUTOSTART_SCRIPT="/usr/local/mootcomb/autostart.sh"  # Путь к вашему скрипту autostart.sh
+AUTOSTART_SCRIPT="/usr/local/MootComb/autostart.sh"  # Путь к вашему скрипту autostart.sh
 SERVICE_FILE="/etc/systemd/system/autostart.service"  # Файл службы systemd
 SERVICE_NAME="autostart.service"  # Имя службы
 
@@ -68,8 +68,8 @@ else
 fi
 
 # Создание директории, если она не существует
-if ! $SUDO mkdir -p /usr/local/mootcomb; then
-    echo "Ошибка: не удалось создать директорию /usr/local/mootcomb"
+if ! $SUDO mkdir -p /usr/local/MootComb; then
+    echo "Ошибка: не удалось создать директорию /usr/local/MootComb"
     exit 1
 fi
 
