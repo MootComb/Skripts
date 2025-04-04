@@ -13,14 +13,6 @@ install_dependencies() {
     $SUDO apt-get install -y dialog git
 }
 
-# Проверка наличия конфигурационного файла
-CONFIG_FILE="/etc/mootcomb/choose.conf"
-if [ ! -f "$CONFIG_FILE" ]; then
-    echo "Конфигурационный файл не найден. Выполняем choose.sh."
-    /tmp/MootComb/choose.sh
-    exit 0
-fi
-
 if ! command -v dialog &> /dev/null || ! command -v git &> /dev/null; then
     read -p "$MSG_INSTALL_PROMPT" choice
     if [[ "$choice" == [Yy] ]]; then
@@ -59,6 +51,14 @@ else
     MSG_BACK="Back"
     MSG_SELECT="Select an item:"
     MSG_TITLE="Select"
+fi
+
+# Проверка наличия конфигурационного файла
+CONFIG_FILE="/etc/mootcomb/choose.conf"
+if [ ! -f "$CONFIG_FILE" ]; then
+    echo "Конфигурационный файл не найден. Выполняем choose.sh."
+    /tmp/MootComb/choose.sh
+    exit 0
 fi
 
 # Массив исключений
