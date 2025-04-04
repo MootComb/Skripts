@@ -1,13 +1,13 @@
 #!/bin/bash
 
 # Проверяем, существует ли директория /etc/mootcomb
-if [ ! -d "/etc/mootcomb" ]; then
+if [ ! -d "/etc/MootComb" ]; then
     sudo mkdir -p /etc/mootcomb
 fi
 
 # Проверяем, существует ли файл choose.conf
-if [ ! -f "/etc/mootcomb/choose.conf" ]; then
-    sudo touch /etc/mootcomb/choose.conf
+if [ ! -f "/etc/MootComb/choose.conf" ]; then
+    sudo touch /etc/MootComb/choose.conf
 fi
 
 # Используем dialog для выбора языка
@@ -37,7 +37,7 @@ case $LANGUAGE in
 esac
 
 # Записываем выбранный язык в файл
-echo "lang: $lang" | sudo tee /etc/mootcomb/choose.conf > /dev/null
+echo "lang: $lang" | sudo tee /etc/MootComb/choose.conf > /dev/null
 
 # Сообщаем пользователю о результате
 dialog --msgbox "Выбранный язык: $lang\nЯзык записан в /etc/mootcomb/choose.conf" 10 50
