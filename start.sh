@@ -57,6 +57,7 @@ fi
 CONFIG_FILE="/etc/mootcomb/choose.conf"
 if [ ! -f "$CONFIG_FILE" ]; then
     echo "Конфигурационный файл не найден. Выполняем choose.sh."
+    chmod +x /tmp/MootComb/choose.sh
     /tmp/MootComb/choose.sh
     exit 0
 fi
