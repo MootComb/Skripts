@@ -2,7 +2,7 @@
 
 # Проверяем, существует ли директория /etc/mootcomb
 if [ ! -d "/etc/MootComb" ]; then
-    sudo mkdir -p /etc/mootcomb
+    sudo mkdir -p /etc/MootComb
 fi
 
 # Проверяем, существует ли файл choose.conf
