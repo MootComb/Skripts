@@ -14,7 +14,7 @@ SUDO=$(command -v sudo || echo "")
 
 # Переменные для путей
 ZRAM_CONFIG="/etc/mootcomb/zram_config.conf"  # Файл для хранения настроек ZRAM
-ZRAM_SETUP_SCRIPT="/usr/local/mootcomb/zram_setup.sh"  # Временный скрипт для настройки ZRAM
+ZRAM_SETUP_SCRIPT="/usr/local/MootComb/zram_setup.sh"  # Временный скрипт для настройки ZRAM
 SYSTEMD_SERVICE="/etc/systemd/system/zram_setup.service"  # Файл службы systemd
 
 # Функция для установки dialog
