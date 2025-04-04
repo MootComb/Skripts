@@ -13,8 +13,36 @@ install_dependencies() {
     $SUDO apt-get install -y dialog git
 }
 
+# Проверка наличия конфигурационного файла
+CONFIG_FILE="/etc/mootcomb/choose.conf"
+if [ ! -f "$CONFIG_FILE" ]; then
+    echo "Конфигурационный файл не найден. Выполняем choose.sh."
+    /tmp/MootComb/choose.sh
+    exit 0
+fi
+
+# Извлечение языка из конфигурационного файла
+LANGUAGE=$(grep -E '^lang:' "$CONFIG_FILE" | cut -d':' -f2 | xargs)
+
+# Установка сообщений в зависимости от языка
+if [[ "$LANGUAGE" == "Русский" ]]; then
+    MSG_INSTALL_PROMPT="Установить необходимые пакеты? (y/n): "
+    MSG_NO_SCRIPTS="Нет доступных скриптов или директорий."
+    MSG_CANCELLED="Выбор отменен."
+    MSG_BACK="Назад"
+    MSG_SELECT="Выберите элемент:"
+    MSG_TITLE="Выберите"
+else
+    MSG_INSTALL_PROMPT="Install necessary packages? (y/n): "
+    MSG_NO_SCRIPTS="No available scripts or directories."
+    MSG_CANCELLED="Selection cancelled."
+    MSG_BACK="Back"
+    MSG_SELECT="Select an item:"
+    MSG_TITLE="Select"
+fi
+
 if ! command -v dialog &> /dev/null || ! command -v git &> /dev/null; then
-    read -p "Установить необходимые пакеты? (y/n): " choice
+    read -p "$MSG_INSTALL_PROMPT" choice
     if [[ "$choice" == [Yy] ]]; then
         install_dependencies
     else
@@ -35,24 +63,6 @@ CURRENT_DIR="$CLONE_DIR"
 
 # Массив исключений
 EXCLUDE_FILES=("start.sh" "*.tmp")
-
-check_language() {
-    if [ -f "/etc/mootcomb/choose.conf" ]; then
-        lang=$(grep -E '^lang:' /etc/mootcomb/choose.conf | cut -d' ' -f2)
-        if [ -z "$lang" ]; then
-            return 1  # Язык не установлен
-        fi
-    else
-        return 1  # Файл не существует
-    fi
-    return 0  # Язык установлен
-}
-
-# Проверяем установлен ли язык
-if ! check_language; then
-    dialog --msgbox "Язык не установлен. Выполняется скрипт для выбора языка." 10 50
-    /tmp/MootComb/choose.sh  # Выполняем скрипт для выбора языка
-fi
 
 show_menu() {
     while true; do
@@ -87,21 +97,20 @@ show_menu() {
         fi
 
         # Добавляем кнопку "Назад", если это не корневая директория
-        [ "$CURRENT_DIR" != "$CLONE_DIR" ] && CHOICES+=("back" "option")
+        [ "$CURRENT_DIR" != "$CLONE_DIR" ] && CHOICES+=("$MSG_BACK" "option")
 
         if [ ${#CHOICES[@]} -eq 0 ]; then
-            echo "Нет доступных скриптов или директорий."
+            echo "$MSG_NO_SCRIPTS"
             exit 0
         fi
 
-        # Отображаем текущий путь в заголовке
-        SELECTED_ITEM=$(dialog --title "$CURRENT_DIR" --menu "select option:" 15 50 10 "${CHOICES[@]}" 3>&1 1>&2 2>&3)
+        SELECTED_ITEM=$(dialog --title "$MSG_TITLE" --menu "$MSG_SELECT" 15 50 10 "${CHOICES[@]}" 3>&1 1>&2 2>&3)
 
-        [ $? -ne 0 ] && echo "Выбор отменен." && exit 0
+        [ $? -ne 0 ] && echo "$MSG_CANCELLED" && exit 0
 
-        if [ "$SELECTED_ITEM" == "back" ]; then
+        if [ "$SELECTED_ITEM" == "$MSG_BACK" ]; then
             if [ ${#DIR_STACK[@]} -gt 0 ]; then
-                cd "${DIR_STACK[-1]}" || exit 1  # Переход в предыдущую директорию
+                cd "${DIR_STACK[-1]}" || exit
                 CURRENT_DIR="${DIR_STACK[-1]}"  # Обновляем текущую директорию
                 DIR_STACK=("${DIR_STACK[@]:0:${#DIR_STACK[@]}-1}")  # Удаляем последнюю директорию из стека
             fi
@@ -119,4 +128,4 @@ show_menu() {
     done
 }
 
-show_menu  # Вызываем функцию для отображения меню
+show_menu
