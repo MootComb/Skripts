@@ -39,7 +39,7 @@ if [[ "$LANGUAGE" == "Русский" ]]; then
     MSG_SELECT="Выберите опцию:"
     MSG_CLONE_ERROR="Ошибка: Не удалось клонировать репозиторий."
     MSG_CD_ERROR="Ошибка: Не удалось перейти в директорию."
-    MSG_TITLE="Текущая директория: $CURRENT_DIR"
+#    MSG_TITLE="Текущая директория: $CURRENT_DIR"
 else
     MSG_INSTALL_PROMPT="Install necessary packages? (y/n): "
     MSG_NO_SCRIPTS="No available scripts or directories."
@@ -48,7 +48,7 @@ else
     MSG_SELECT="Select an option:"
     MSG_CLONE_ERROR="Error: Failed to clone the repository."
     MSG_CD_ERROR="Error: Failed to change directory."
-    MSG_TITLE="Current directory: $CURRENT_DIR"
+#    MSG_TITLE="Current directory: $CURRENT_DIR"
 fi
 
 # Проверка и установка зависимостей
@@ -119,9 +119,9 @@ show_menu() {
 
         # Обновляем MSG_TITLE с текущей директорией
         if [[ "$LANGUAGE" == "Русский" ]]; then
-            MSG_TITLE="Текущая директория: $CURRENT_DIR"
+            MSG_TITLE="$CURRENT_DIR"
         else
-            MSG_TITLE="Current directory: $CURRENT_DIR"
+            MSG_TITLE="$CURRENT_DIR"
         fi
 
         # Отображение меню с помощью dialog
