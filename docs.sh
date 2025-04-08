@@ -30,7 +30,8 @@ from playwright.sync_api import sync_playwright
 from telegram import Bot
 import os
 
-GOOGLE_DOCS_URL = "https://docs.google.com/spreadsheets/d/1E2WX7jd11LviBpmbq9rildgF7NAJ_p2ERYtfEG-Prz0"  # Замени на URL твоего документа
+# Настройки
+GOOGLE_DOCS_URL = "https://docs.google.com/spreadsheets/d/1E2WX7jd11LviBpmbq9rildgF7NAJ_p2ERYtfEG-Prz0/edit?usp=sharing"  # Замени на URL твоего документа
 TELEGRAM_BOT_TOKEN = "7178112530:AAEhI8zw_UBfyTFJojuW9TPftjzelvUobOE"  # Замени на токен твоего бота
 TELEGRAM_CHAT_ID = "1642283122"  # Замени на твой chat_id
 
@@ -44,37 +45,23 @@ with sync_playwright() as p:
     page.goto(GOOGLE_DOCS_URL)
     page.wait_for_timeout(10000)  # Ждем 10 секунд для загрузки страницы
 
-    # Находим нужный элемент (например, div или table, содержащий диапазон)
-    try:
-        # Замените "//div[@aria-label='Таблица']" на ваш XPath или CSS-селектор
-        element = page.locator("//div[contains(text(), '8А')]")  # Пример XPath
-        element.wait_for(timeout=5000)  # Ждем до 15 секунд для появления элемента
+    # Делаем скриншот всей страницы
+    screenshot_path = "full_screenshot.png"
+    page.screenshot(path=screenshot_path, full_page=True)  # full_page=True для скриншота всей страницы
 
-        if element.count() > 0:
-            # Делаем скриншот элемента
-            screenshot_path = "screenshot.png"
-            element.screenshot(path=screenshot_path)
+    # Отправка скриншота в Telegram
+    bot = Bot(token=TELEGRAM_BOT_TOKEN)
+    with open(screenshot_path, 'rb') as photo:
+        bot.send_photo(chat_id=TELEGRAM_CHAT_ID, photo=photo)
 
-            # Отправка скриншота в Telegram
-            bot = Bot(token=TELEGRAM_BOT_TOKEN)
-            with open(screenshot_path, 'rb') as photo:
-                bot.send_photo(chat_id=TELEGRAM_CHAT_ID, photo=photo)
-
-            # Удаляем временный файл
-            os.remove(screenshot_path)
-        else:
-            print("Элемент не найден.")
-    except Exception as e:
-        print(f"Произошла ошибка: {e}")
+    # Удаляем временный файл
+    os.remove(screenshot_path)
 
     # Закрываем браузер
     browser.close()
 EOF
 
-# Настройка Python-скрипта
-echo "Настройка Python-скрипта..."
-read -p "Введите токен вашего Telegram-бота: " telegram_bot_token
-read -p "Введите ваш chat_id: " telegram_chat_id
+
 
 # Заменяем значения в Python-скрипте
 sed -i "s|your_telegram_bot_token|$telegram_bot_token|g" playwright_screenshot.py
