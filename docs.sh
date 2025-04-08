@@ -30,7 +30,6 @@ from playwright.sync_api import sync_playwright
 from telegram import Bot
 import os
 
-# Настройки
 GOOGLE_DOCS_URL = "https://docs.google.com/spreadsheets/d/1E2WX7jd11LviBpmbq9rildgF7NAJ_p2ERYtfEG-Prz0/edit?usp=sharing"  # Замени на URL твоего документа
 TELEGRAM_BOT_TOKEN = "7178112530:AAEhI8zw_UBfyTFJojuW9TPftjzelvUobOE"  # Замени на токен твоего бота
 TELEGRAM_CHAT_ID = "1642283122"  # Замени на твой chat_id
@@ -60,12 +59,9 @@ with sync_playwright() as p:
     # Закрываем браузер
     browser.close()
 EOF
-
-
-
 # Заменяем значения в Python-скрипте
-sed -i "s|your_telegram_bot_token|$telegram_bot_token|g" playwright_screenshot.py
-sed -i "s|your_chat_id|$telegram_chat_id|g" playwright_screenshot.py
+#sed -i "s|your_telegram_bot_token|$telegram_bot_token|g" playwright_screenshot.py
+#sed -i "s|your_chat_id|$telegram_chat_id|g" playwright_screenshot.py
 
 # Запуск Python-скрипта
 echo "Запуск Python-скрипта для создания скриншота и отправки в Telegram..."
