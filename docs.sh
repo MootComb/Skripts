@@ -20,7 +20,7 @@ check_command "Не удалось установить Playwright и завис
 
 # Установка браузеров для Playwright
 echo "Установка браузеров для Playwright..."
-playwright install
+python3 -m playwright install
 check_command "Не удалось установить браузеры для Playwright."
 
 # Создание Python-скрипта
@@ -46,21 +46,26 @@ with sync_playwright() as p:
     page.wait_for_timeout(10000)  # Ждем 10 секунд для загрузки страницы
 
     # Находим нужный элемент (например, таблицу)
-    element = page.locator("//div[@aria-label='Таблица']")
-    if element.count() > 0:
-        # Делаем скриншот элемента
-        screenshot_path = "screenshot.png"
-        element.screenshot(path=screenshot_path)
+    try:
+        element = page.locator("//div[@aria-label='Таблица']")
+        element.wait_for(timeout=5000)  # Ждем до 5 секунд для появления элемента
 
-        # Отправка скриншота в Telegram
-        bot = Bot(token=TELEGRAM_BOT_TOKEN)
-        with open(screenshot_path, 'rb') as photo:
-            bot.send_photo(chat_id=TELEGRAM_CHAT_ID, photo=photo)
+        if element.count() > 0:
+            # Делаем скриншот элемента
+            screenshot_path = "screenshot.png"
+            element.screenshot(path=screenshot_path)
 
-        # Удаляем временный файл
-        os.remove(screenshot_path)
-    else:
-        print("Элемент не найден.")
+            # Отправка скриншота в Telegram
+            bot = Bot(token=TELEGRAM_BOT_TOKEN)
+            with open(screenshot_path, 'rb') as photo:
+                bot.send_photo(chat_id=TELEGRAM_CHAT_ID, photo=photo)
+
+            # Удаляем временный файл
+            os.remove(screenshot_path)
+        else:
+            print("Элемент не найден.")
+    except Exception as e:
+        print(f"Произошла ошибка: {e}")
 
     # Закрываем браузер
     browser.close()
