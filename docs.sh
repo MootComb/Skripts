@@ -30,7 +30,7 @@ from playwright.sync_api import sync_playwright
 from telegram import Bot
 import os
 
-GOOGLE_DOCS_URL = "https://docs.google.com/spreadsheets/d/1E2WX7jd11LviBpmbq9rildgF7NAJ_p2ERYtfEG-Prz0/edit?usp=sharing"  # Замени на URL твоего документа
+GOOGLE_DOCS_URL = "https://docs.google.com/spreadsheets/d/1E2WX7jd11LviBpmbq9rildgF7NAJ_p2ERYtfEG-Prz0"  # Замени на URL твоего документа
 TELEGRAM_BOT_TOKEN = "7178112530:AAEhI8zw_UBfyTFJojuW9TPftjzelvUobOE"  # Замени на токен твоего бота
 TELEGRAM_CHAT_ID = "1642283122"  # Замени на твой chat_id
 
@@ -48,7 +48,7 @@ with sync_playwright() as p:
     try:
         # Замените "//div[@aria-label='Таблица']" на ваш XPath или CSS-селектор
         element = page.locator("//div[contains(text(), '8А')]")  # Пример XPath
-        element.wait_for(timeout=15000)  # Ждем до 15 секунд для появления элемента
+        element.wait_for(timeout=5000)  # Ждем до 15 секунд для появления элемента
 
         if element.count() > 0:
             # Делаем скриншот элемента
